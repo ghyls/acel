@@ -1,7 +1,14 @@
 
 
 #include <iostream>
-
+#include "Rtypes.h"
+#include "TH1.h"
+#include "TPad.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TLorentzVector.h"
+#include "TCanvas.h"
+#include "TLegend.h"
 
 void fillHistosFromTree(TTree * tree, TH1F * histo)
 {
@@ -23,7 +30,7 @@ void fillHistosFromTree(TTree * tree, TH1F * histo)
   tree->SetBranchAddress("Muon_Pz", &Muon_Pz);
   tree->SetBranchAddress("Muon_E", &Muon_E);
 
-  numEvents = tree->GetEntries();
+  Int_t numEvents = tree->GetEntries();
   TLorentzVector muon1;
   TLorentzVector muon2;
   Float_t diPt;
@@ -115,7 +122,7 @@ void plotWithRatio(TH1F * h1, TH1F * h2)
 
   // Leyenda
   pad1->cd();  
-  leg = TLegend(0.8, 0.8, 0.9, 0.9); // x0, y0, x1, y1
+  TLegend leg = TLegend(0.8, 0.8, 0.9, 0.9); // x0, y0, x1, y1
   leg.AddEntry(h1, "DY", "l");
   leg.AddEntry(h2, "t#bar{t}", "l");
   leg.SetTextSize(0.043);
