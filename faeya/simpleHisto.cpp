@@ -1,6 +1,7 @@
 
 
 #include <iostream>
+
 #include "Rtypes.h"
 #include "TH1.h"
 #include "TPad.h"
@@ -46,9 +47,6 @@ void fillHistosFromTree(TTree * tree, TH1F * histo)
 
     muon1.SetPxPyPzE(Muon_Px[0], Muon_Py[0], Muon_Pz[0], Muon_E[0]);
     muon2.SetPxPyPzE(Muon_Px[1], Muon_Py[1], Muon_Pz[1], Muon_E[1]);
-
-    // Por qué están todos llenos?
-    //std::cout << Muon_Pz[0] <<" "<< Muon_Pz[1] <<" "<< Muon_Pz[2] << std::endl;
 
     diPt = (muon1 + muon2).Pt();
     histo->Fill(diPt);
