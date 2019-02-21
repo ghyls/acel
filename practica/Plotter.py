@@ -48,7 +48,7 @@ class Plotter:
        if name not in s.name: continue
        h = s.GetHisto(name)
        return h
-    print 'WARNING: histo %s for process %s not found!' %(name, process)
+    print('WARNING: histo %s for process %s not found!' %(name, process))
     return TH1F()
 
   def GetEvents(self, process, name):
@@ -91,7 +91,7 @@ class Plotter:
     if self.xtitle != '': hstack.GetXaxis().SetTitle(self.xtitle)
     if self.ytitle != '': hstack.GetYaxis().SetTitle(self.ytitle)
     hstack.GetYaxis().SetTitleOffset(1.35)
-    Max = hstack.GetStack().Last().GetMaximum();
+    Max = hstack.GetStack().Last().GetMaximum()
     if self.data != '':
       hdata = self.dataSelector.GetHisto(name)
       hdata.SetMarkerStyle(20)
