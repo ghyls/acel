@@ -1,6 +1,7 @@
 
 
 #include <iostream>
+#include <string>
 #include <vector>
 #include "TH1.h"
 #include "TFile.h"
@@ -20,11 +21,53 @@ class Selector
 
   public:
     
+    Selector(std::string _filePath, std::string _fileName, std::string _prefix)
+    {
+      if (!fileExist(_filePath + _fileName))
+      {
+        std::cout << "[Selector] ERROR. File '" << filePath + fileName << "' "
+        "does not exist!" << std::endl;
+
+        throw;
+      }
+      fileName = TString(_fileName); //including .root
+      filePath = TString(_filePath); //including last '/'
+      prefix = TString(_prefix); //including last '/'
+
+      CreateHistograms();
+      Loop();
+    }
+
+    TH1F* GetHisto(TString name) //name is the name of the histo
+    {
+        int len = histograms.size();
+        for (int i = 0; i < len; i++)
+        {
+          TString n = histograms[i]->GetName(); //full name
+            
+          if ((prefix + '_' + name) == n)
+            return histograms[i];
+        }
+
+        std::cout << "[Selector::GetHisto] WARNING: not found histo named " + \
+        name + ". Keep up the good work!" << std::endl;
+
+        throw;
+    }
+
+  private:
+
     TString prefix;                 // prefix for ALL histos
     TString fileName;               // name of the root file
     TString filePath;               // path of the root file
-    std::vector<TH1F*> histograms;  
-    
+    std::vector<TH1F*> histograms; 
+  
+    bool fileExist(const std::string name)
+    {
+      //std::cout << name << std::endl;
+      return (access(name.c_str(), F_OK) != -1);
+    }
+
     void CreateHistograms()
     {
       TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), ";p_{T}^{#mu} (GeV);Events", 20, 0, 200);
@@ -36,24 +79,8 @@ class Selector
       //add here more histograms   
     }
 
-    TH1F GetHisto(TString name) //name is the name of the histo
-    {
-        int len = histograms.size();
-        for (int i = 0; i < len; i++)
-        {
-          TString n = histograms[i]->GetName(); //full name
-            
-          if ((prefix + '_' + name) == n)
-            return *histograms[i];
-        }
-
-        std::cout << "[Selector::GetHisto] WARNING: not found histo named " + \
-        name + ". Returning an empty one" << std::endl;
-        return TH1F();
-    }
-
     void Loop()
-    {
+    { 
       TFile f(filePath + fileName);
       TTree * tree = (TTree *) f.Get("events");
 
@@ -97,22 +124,24 @@ class Selector
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         // fill histos >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        GetHisto('MuonPt').Fill(muon.Pt()); //C'mon Mario, you can do it better 
+        GetHisto("MuonPt")->Fill(muon.Pt()); //C'mon Mario, you can do it better 
 
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       }
+
+
     }
+
 
 };
 
 
 void selector()
 {
-    Selector obj;
-    obj.prefix = "hello";
-    obj.filePath = "./practica/files/";
-    obj.fileName = "dy.root";
-    obj.CreateHistograms();
-    obj.Loop();
-    obj.GetHisto("MuonPst");
+  std::string path = "./practica/files/";
+  std::string name = "dy.root";
+  std::string prefix = "hello";
+  
+  Selector obj (path, name, prefix);
+  obj.GetHisto("MuonPt");
 }
