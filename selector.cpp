@@ -1,4 +1,5 @@
 
+#include "selector.h"
 
 #include <iostream>
 #include <string>
@@ -20,7 +21,9 @@ class Selector
 {
 
   public:
-    
+
+    std::vector<TH1F*> histograms; 
+
     Selector(std::string _filePath, std::string _fileName, std::string _prefix)
     {
       if (!fileExist(_filePath + _fileName))
@@ -30,9 +33,9 @@ class Selector
 
         throw;
       }
-      fileName = TString(_fileName); //including .root
-      filePath = TString(_filePath); //including last '/'
-      prefix = TString(_prefix); //including last '/'
+      fileName = TString(_fileName);  // including .root
+      filePath = TString(_filePath);  // including last '/'
+      prefix = TString(_prefix);      // including last '/'
 
       CreateHistograms();
       Loop();
@@ -55,12 +58,17 @@ class Selector
         throw;
     }
 
+    int GetNumberOfHistos()
+    {
+      return histograms.size();
+    }
+
   private:
 
     TString prefix;                 // prefix for ALL histos
     TString fileName;               // name of the root file
     TString filePath;               // path of the root file
-    std::vector<TH1F*> histograms; 
+
   
     bool fileExist(const std::string name)
     {
