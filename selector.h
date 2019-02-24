@@ -11,7 +11,7 @@ class Selector
   public:
 
     std::vector<TH1F*> histograms; 
-
+    TString prefix;                 // prefix for ALL histos
 
     Selector(std::string _filePath, std::string _fileName, std::string _prefix);
     
@@ -21,7 +21,6 @@ class Selector
 
   private:
 
-    TString prefix;                 // prefix for ALL histos
     TString fileName;               // name of the root file
     TString filePath;               // path of the root file
 
@@ -30,4 +29,4 @@ class Selector
     void CreateHistograms();
 
     void Loop();
-}
+};
