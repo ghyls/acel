@@ -1,9 +1,8 @@
 
 
-//R__LOAD_LIBRARY(libTreePlayer)
 
-#include "plotter.h"
 #include "selector.h"
+#include "plotter.h"
 
 #include <iostream>
 #include <vector>
@@ -16,21 +15,38 @@
 #include "TROOT.h"
 
 
+
 void terminator()
 {
-    gROOT->LoadMacro("plotter.cpp");
-    gROOT->LoadMacro("selector.h");
-    gROOT->LoadMacro("selector.cpp");
-    gROOT->LoadMacro("plotter.h");
+
+    std::cout <<"[terminator] NOTE. Hello!" << std::endl;
+
+    gROOT->LoadMacro("selector.cpp+");
+    gROOT->LoadMacro("plotter.cpp+");
+
+    R__LOAD_LIBRARY(selector_cpp.so);
+    R__LOAD_LIBRARY(plotter_cpp.so);
 
     std::string pathToFiles = "./practica/files/";
     std::string dataFile = "data";
     std::string prefix = "hello";    
 
     std::vector<std::string> MCsamples;
-    //MCsamples = {TString("qcd")};//, "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
+    MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
 
-    MCsamples.push_back("qcd");
+    std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, kAzure-8, kOrange+1, kRed+1};
 
     Plotter plot(MCsamples, pathToFiles, prefix, "data");
+
+    plot.SetColors(colors);
+    plot.SetLegendPos(0.62, 0.6, 0.88, 0.88);
+    plot.SetYTitle("Events");
+    plot.SetTitle("HELLO");
+    plot.SetXTitle("mumuM");
+
+    //plot.Stack("MuonPt");
+    plot.Stack("DiMuonMass");
+
+
+    plot.PrintEvents("MuonPt");
 }
