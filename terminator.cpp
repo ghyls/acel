@@ -34,11 +34,12 @@ void terminator()
     std::vector<std::string> MCsamples;
     MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
 
-    std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, kAzure-8, kOrange+1, kRed+1};
+    std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, \
+                                kAzure-8, kOrange+1, kRed+1};
 
     Plotter plot(MCsamples, pathToFiles, prefix, "data");
 
-    plot.SetColors(colors);
+    //plot.SetColors(colors);
     plot.SetLegendPos(0.62, 0.6, 0.88, 0.88);
     plot.SetYTitle("Events");
     plot.SetTitle("HELLO");

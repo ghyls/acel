@@ -159,6 +159,7 @@ void Plotter::Stack(TString name)
   for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
     TH1F* h = GetHisto(listOfSelectors[i].histoName); // TODO: DON'T MAKE ME LAUGH
+    std::cout << h->Integral() << std::endl;
 
     h->SetFillColor(listOfColors[i]);
     h->SetLineColor(0);
