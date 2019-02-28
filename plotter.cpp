@@ -92,14 +92,15 @@ TH1F* Plotter::GetHisto(TString name) //name is the name of the histo
     //FIXME: Algo me dice que esto solo devuelve la primera coincidencia.
         
     int numberOfSelectors = listOfSelectors.size();
+    std::cout <<"plott, gethisto, N_SEL: " << numberOfSelectors << std::endl;
     int numberOfHistos = listOfSelectors[0].GetNumberOfHistos();
 
     for (int i = 0; i < numberOfSelectors; i++)
     {
-      for (int j = 0; i < numberOfHistos; i++)
+      for (int j = 0; j < numberOfHistos; j++)
       {
         TString n = listOfSelectors[i].histograms[j]->GetName(); //full name
-
+        std::cout << "name: " << n << std::endl;
         if (!std::string(n).find(std::string(name))){continue;}
         //si no encuentras el histo, sigue adelante
         return listOfSelectors[i].histograms[j];
@@ -127,7 +128,7 @@ void Plotter::PrintEvents(TString name)
   {
     TH1F* h = listOfSelectors[i].GetHisto(name);
 
-    std::cout << name << ": " << h->Integral();
+    std::cout << name << ": " << h->Integral() << std::endl;
     totalEvts += h->Integral();
   }
 
@@ -147,24 +148,27 @@ void Plotter::Stack(TString name)
 {
   // name is NOT a list
       
-  TCanvas *c = new TCanvas("c", "canvas", 800, 800);
+  TCanvas *c = new TCanvas("c", "canvas", 1000, 800);
   TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); 
   leg.SetTextSize(LegendTextSize);
   leg.SetBorderSize(0);
-  leg.SetFillColor(10);
+  //leg.SetFillColor(10);
 
   THStack *hs = new THStack("hstack_" + name, "hstack");
       
   // fill hstack >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
-    TH1F* h = GetHisto(listOfSelectors[i].histoName); // TODO: DON'T MAKE ME LAUGH
-    std::cout << h->Integral() << std::endl;
+    //TH1F* h = GetHisto(listOfSelectors[i].histoName); // TODO: DON'T MAKE ME LAUGH
+    TH1F* h = listOfSelectors[i].GetHisto(name); // TODO: DON'T MAKE ME LAUGH
+    
+    std::cout << "name: " << h->GetName() << std::endl;
+    std::cout << "integral " << h->Integral() << std::endl;
 
     h->SetFillColor(listOfColors[i]);
-    h->SetLineColor(0);
+    h->SetLineColor(kBlack);
     hs->Add(h);
-    leg.AddEntry(h, listOfSelectors[i].histoName, "hstack");
+    leg.AddEntry(h, listOfSelectors[i].histoName, "f");
   }
 
   hs->Draw("hist");
@@ -172,11 +176,11 @@ void Plotter::Stack(TString name)
   if (title  != "") {hs->SetTitle(title);}
   if (xtitle != "") {hs->GetXaxis()->SetTitle(xtitle);}
   if (ytitle != "") {hs->GetYaxis()->SetTitle(ytitle);}
-  hs->GetYaxis()->SetTitleOffset(1.35);
+  hs->GetYaxis()->SetTitleOffset(1.5);
 
   TH1 *aux = ((TH1*)(hs->GetStack()->Last()));
   Float_t max = aux->GetMaximum(); // why do I have to do this in 2 lines?
-  /*
+  
   if (data != "")
   {
     TH1F* hdata = dataSelector->GetHisto(name); 
@@ -189,7 +193,7 @@ void Plotter::Stack(TString name)
 
     leg.AddEntry(hdata, dataSelector->prefix, "p");
   }
-  */
+  
   leg.Draw("same");
   hs->SetMaximum(max*1.1);
   c->Print(name + ".png", "png");

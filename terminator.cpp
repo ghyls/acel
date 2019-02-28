@@ -45,9 +45,10 @@ void terminator()
     plot.SetTitle("HELLO");
     plot.SetXTitle("mumuM");
 
-    //plot.Stack("MuonPt");
-    plot.Stack("DiMuonMass");
+    plot.Stack("MuonPt");
+    //plot.Stack("DiMuonMass");
 
 
     plot.PrintEvents("MuonPt");
+
 }

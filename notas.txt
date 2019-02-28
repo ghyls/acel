@@ -1,0 +1,50 @@
+
+
+hay una nvariable en las n tuplas que se llama Jet_btag. Toma valores para cada
+jet que van entre 1 y 6, pero tiene otra columna en -1.
+
+Indica la prob. de que un J venga de un b.
+
+-1 : no viene de un b.
+
+valores altos : más facil que venga de un b.
+
+El criterio a partir del que un jet es un b lo elegimos nosotros. Veremos ttbar
+tiene muchos btags, pero W + Jets tiene pocos.
+
+También mediremos la eficiencia del trigger en funcion del pt del mu. Lo primero
+que se pide en el selector es que el muon pase el trigger. IsoMuo24 -> Pt mayor
+oiguual que 24.
+
+La eficiencia se mide a partir de la simulacion.
+
+En la muestra de ttbar tenemos sucesos que pasan el trigger y otros que no (solo
+en esa muestra). Entonces, eff = suc_que_pasan_trigg / todos_los_suc., para
+cierta selección del muon. Los muones están aislados y tienen eta menor que 2.4.
+LA variable que cambiamos es el pt. Si el Pt es de unos 40 gev, eps será casi 1.
+Si los sucesos los selecccionamos con 20, perderemos muchos.
+
+Calc eff tr en funcion del momento del muon.
+
+pintar los histos del pt de todos los muones y del pt de los que pasan el
+trigger (quedará por debajo). Debajo pintamos el cociente. Veremos que el valor
+al que empieza a sereficiente es 24.
+
+El error es (1-eps)/2.  
+
+
+Printing number of events for histogram MuonPt:
+----------------------------------------------------
+qcd: 0.000000
+wjets: 2.502203
+ww: 14.613818
+wz: 13.857549
+zz: 9.790407
+dy: 19234.489978
+single_top: 6.465919
+ttbar: 57.816706
+Total expected: 19339.536580
+------------------------------
+Observed: 18693
+------------------------------
+
