@@ -20,15 +20,19 @@
 
 Selector::Selector(std::string _filePath, std::string _fileName, std::string _prefix)
 {
-  if (!fileExist(_filePath + _fileName))
+
+
+  if (!fileExist(_filePath + _fileName + ".root"))
   {
-    std::cout << "[Selector] ERROR. File '" << filePath + fileName << "' "
+    std::cout << "[Selector] ERROR. File '" << _filePath + _fileName << "' "
     "does not exist!" << std::endl;
 
     throw;
   }
-  fileName = TString(_fileName);  // including .root
+
+  histoName = _fileName;
   filePath = TString(_filePath);  // including last '/'
+
   prefix = TString(_prefix);      //
 
   CreateHistograms();
@@ -78,7 +82,8 @@ void Selector::CreateHistograms()
 
 void Selector::Loop()
 { 
-  TFile f(filePath + fileName);
+  //TFile f(filePath + fileName);
+  TFile f(filePath + histoName + ".root");
   TTree * tree = (TTree *) f.Get("events");
 
   Int_t numEvents = tree->GetEntries();
@@ -113,7 +118,7 @@ void Selector::Loop()
     muon.SetPxPyPzE(Muon_Px[0], Muon_Py[0], Muon_Pz[0], Muon_E[0]);
         
     Float_t weight;
-    if (fileName != "data") {weight = EventWeight;} else weight = 1;
+    if (histoName != "data") {weight = EventWeight;} else weight = 1;
 
     // full analysis >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   
