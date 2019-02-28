@@ -11,29 +11,38 @@
 #include "THStack.h"
 
 
-Float_t fLegX1 = 0.70, fLegY1 = 0.55, fLegX2 = 0.92, fLegY2 = 0.92;
-Float_t LegendTextSize  = 0.065;
-TString xtitle = "";
-TString ytitle = "";
-TString title  = "";    
-Selector* dataSelector;
+
 
 
 Plotter::Plotter(std::vector<std::string> bkgs, std::string pathToFiles,  
-std::string prefixForHistos, std::string data = "")
+std::string prefixForHistos, std::string data_)
 {
-  data = data;
+
+  std::cout <<"[plotter] NOTE. Hello!" << std::endl;
+
+  LegendTextSize  = 0.030;
+  fLegX1 = 0.70, fLegY1 = 0.55, fLegX2 = 0.92, fLegY2 = 0.92;
+
+
+  data = data_;
   listOfSelectors = {}; // initialization!
 
-  for (int i = 0; i < bkgs.size(); i++)
+  std::cout <<"HELLO " << data_ << " " << pathToFiles << std::endl;
+  for (unsigned int i = 0; i < bkgs.size(); i++)
   {
     Selector sel(pathToFiles, bkgs[i], prefixForHistos);
     listOfSelectors.push_back(sel); 
     listOfColors.push_back(i+1);
   }
   
-  if (data != "")
-    dataSelector = new Selector(pathToFiles, data, prefixForHistos);
+  if (data_ != "")
+  {
+
+    std::cout <<"hi :D" << std::endl;
+    //Selector *dataS = new Selector(pathToFiles, data_, prefixForHistos);
+    dataSelector = new Selector(pathToFiles, data_, prefixForHistos);
+    //Selector dataSelector(pathToFiles, data_, prefixForHistos);
+  }
 }
 
 
@@ -46,7 +55,7 @@ void Plotter::SetLegendPos(Float_t x1, Float_t y1, Float_t x2, Float_t y2)
 }
 
     
-void Plotter::SetLegendSize(Float_t size = 0.065)
+void Plotter::SetLegendSize(Float_t size)
 {
   LegendTextSize = size;
 }
@@ -114,7 +123,7 @@ void Plotter::PrintEvents(TString name)
 
   Int_t totalEvts = 0;
 
-  for (int i = 0; i < listOfSelectors.size(); i++)
+  for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
     TH1F* h = listOfSelectors[i].GetHisto(name);
 
@@ -147,31 +156,31 @@ void Plotter::Stack(TString name)
   THStack *hs = new THStack("hstack_" + name, "hstack");
       
   // fill hstack >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  for (int i = 0; i < listOfSelectors.size(); i++)
+  for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
-    TH1F* h = GetHisto(name); // haha don't make me laugh
+    TH1F* h = GetHisto(listOfSelectors[i].histoName); // TODO: DON'T MAKE ME LAUGH
 
     h->SetFillColor(listOfColors[i]);
     h->SetLineColor(0);
     hs->Add(h);
-    leg.AddEntry(h, listOfSelectors[i].prefix, "hstack");
+    leg.AddEntry(h, listOfSelectors[i].histoName, "hstack");
   }
 
   hs->Draw("hist");
 
   if (title  != "") {hs->SetTitle(title);}
-  if (xtitle != "") {hs->GetXaxis()->SetTitle(title);}
+  if (xtitle != "") {hs->GetXaxis()->SetTitle(xtitle);}
   if (ytitle != "") {hs->GetYaxis()->SetTitle(ytitle);}
   hs->GetYaxis()->SetTitleOffset(1.35);
 
   TH1 *aux = ((TH1*)(hs->GetStack()->Last()));
   Float_t max = aux->GetMaximum(); // why do I have to do this in 2 lines?
-
+  /*
   if (data != "")
   {
-    TH1F* hdata = dataSelector->GetHisto(name); // 笑わせるな...
+    TH1F* hdata = dataSelector->GetHisto(name); 
     hdata->SetMarkerStyle(20);
-    hdata->SetMarkerColor(1);
+    hdata->SetMarkerColor(kTeal+1); // 1
     hdata->Draw("pesame");                      //これは何か 笑
 
     Float_t maxData = hdata->GetMaximum();
@@ -179,12 +188,9 @@ void Plotter::Stack(TString name)
 
     leg.AddEntry(hdata, dataSelector->prefix, "p");
   }
-
+  */
   leg.Draw("same");
   hs->SetMaximum(max*1.1);
   c->Print(name + ".png", "png");
 }
-
-
-
 
