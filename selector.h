@@ -12,7 +12,7 @@ class Selector
 
     std::vector<TH1F*> histograms; 
     TString prefix;                 // prefix for ALL histos
-    TString histoName;              // without .root
+    TString process;                // without .root
 
     Selector();
     Selector(std::string _filePath, std::string _fileName, std::string _prefix);

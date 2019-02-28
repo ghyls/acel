@@ -24,8 +24,12 @@ class Plotter
         TString ytitle = "";
         TString title = ""; 
 
+
+        Plotter();
         Plotter(std::vector<std::string> bkgs, std::string pathToFiles,  
                std::string prefixForHistos, std::string data);
+
+        ~Plotter();       
 
         void SetLegendPos(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
         void SetLegendSize(Float_t size = 0.065);
@@ -36,7 +40,8 @@ class Plotter
         TH1F* GetHisto(TString name);
         int GetEvents(TString name);
         void PrintEvents(TString name);
-        void Stack(TString name);
+        void Stack(TString name, Float_t maxY = -1);
+        void plotWithRatio(TString nameH1, TString nameH2);
 
     private:
 
