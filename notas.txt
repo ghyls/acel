@@ -48,3 +48,9 @@ Total expected: 19339.536580
 Observed: 18693
 ------------------------------
 
+
+scp gonzalezm@fanae127.geol.uniovi.es:~/Downloads/sublime_text_3_build_3176_x64.tar.bz2 .
+alias sublime3='~/Downloads/sublime_text_3/sublime_text'
+
+mpirun --oversubscribe -n 4 ./main
+mpic++ -o main terminator.cpp selector.cpp plotter.cpp `root-config --cflags --glibs`
