@@ -18,8 +18,6 @@ Plotter::Plotter(std::vector<std::string> bkgs, std::string pathToFiles,
 std::string prefixForHistos, std::string data_)
 {
 
-  std::cout <<"[plotter] NOTE. Hello!" << std::endl;
-
   LegendTextSize  = 0.030;
   fLegX1 = 0.70, fLegY1 = 0.55, fLegX2 = 0.92, fLegY2 = 0.92;
 
@@ -27,7 +25,6 @@ std::string prefixForHistos, std::string data_)
   data = data_;
   listOfSelectors = {}; // initialization!
 
-  std::cout <<"HELLO " << data_ << " " << pathToFiles << std::endl;
   for (unsigned int i = 0; i < bkgs.size(); i++)
   {
     Selector sel(pathToFiles, bkgs[i], prefixForHistos);
