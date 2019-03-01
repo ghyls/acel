@@ -18,11 +18,20 @@
 void terminator()
 {
 
-    gROOT->LoadMacro("selector.cpp+");
-    gROOT->LoadMacro("plotter.cpp+");
-
-    R__LOAD_LIBRARY(selector_cpp.so);
-    R__LOAD_LIBRARY(plotter_cpp.so);
+//    MPI_Comm comm;
+//    MPI_Status status;
+//    int size, rank;
+//  
+//    comm = MPI_COMM_WORLD;
+//  
+//    MPI_Init(NULL, NULL);
+//  
+//    MPI_Comm_size(comm, &size);
+//    MPI_Comm_rank(comm, &rank);
+//  
+//    std::cout << "Hello from rank " << rank << '!' << std::endl;
+//    if (rank==0) {std::cout << "Running on " << size << " process(es)!";}
+    int rank = 0;  
 
     std::string pathToFiles = "./practica/files/";
     std::string dataFile = "data";
@@ -37,18 +46,23 @@ void terminator()
     MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
     Plotter * plot;
 
+    int RANKS[3] = {0, 0, 0};
 
-    // mu mu Pt >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    plot = new Plotter(MCsamples, pathToFiles, prefix, "data");
-    //plot.SetColors(colors);
-    plot->SetTitle("Muon Pt");
-    plot->SetXTitle("muonPt");
-    plot->SetLegendPos(0.62, 0.6, 0.85, 0.85); plot->SetYTitle("Events");
-    plot->Stack("MuonPt");
-
-    plot->PrintEvents("MuonPt");
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+    if(rank==RANKS[0])
+    {
+      // mu mu Pt >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      plot = new Plotter(MCsamples, pathToFiles, prefix, "data");
+      //plot.SetColors(colors);
+      plot->SetTitle("Muon Pt");
+      plot->SetXTitle("muonPt");
+      plot->SetLegendPos(0.62, 0.6, 0.85, 0.85); plot->SetYTitle("Events");
+      plot->Stack("MuonPt");
+  
+      plot->PrintEvents("MuonPt");
+      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    }
+    if(rank==RANKS[1])
+    {
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     plot = new Plotter({"wjets", "ttbar"}, pathToFiles, prefix, "");
     plot->SetTitle("Muon Pt");
@@ -58,8 +72,10 @@ void terminator()
 
     plot->PrintEvents("Jet_btag");
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    }
 
-
+    if(rank==RANKS[2])
+    {
     // Trigger eff. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     plot = new Plotter({"ttbar"}, pathToFiles, prefix, "");
     plot->SetTitle("Eficiencia del trigger");
@@ -71,4 +87,35 @@ void terminator()
     plot->PrintEvents("AllMuons");
     plot->PrintEvents("MuonPt");
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    }
+
+//    MPI_Finalize();
+
+
 }
+
+
+int main()
+{
+    terminator();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//mpirun --oversubscribe -n 4 ./main
+//mpic++ -o main terminator.cpp selector.cpp plotter.cpp `root-config --cflags --glibs`
+
+
+
