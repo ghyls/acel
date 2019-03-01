@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <mpi.h>
 #include "TH1.h"
 
 
@@ -20,6 +21,8 @@ class Selector
     TH1F* GetHisto(TString name);
 
     int GetNumberOfHistos();
+
+
 
   private:
 

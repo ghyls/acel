@@ -77,6 +77,7 @@ void Selector::CreateHistograms()
   TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), ";p_{T}^{#mu} (GeV);Events",\
                       20, 10, 120);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 10);
+  //std::cout << "destroyed Plotter" << std::endl;
   TH1F* h3 = new TH1F(prefix + TString("_AllMuons"), "", 20, 10, 120);
   
 
@@ -118,6 +119,8 @@ void Selector::Loop()
   // Loop over every event >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   std::cout << "[Selector::loop]: " << process << ", " << numEvents  << \
                 " events." << std::endl;
+
+
   for (int i = 0; i < numEvents; i++)
   {
 
@@ -153,6 +156,7 @@ void Selector::Loop()
     //<< Jet_btag[2] << ' ' << Jet_btag[3] << ' ' << Jet_btag[4] << std::endl;
 
   }
+
 
 
 }
