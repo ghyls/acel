@@ -68,17 +68,15 @@ int Selector::GetNumberOfHistos()
   
 bool Selector::fileExist(const std::string name)
 {
-  //std::cout << name << std::endl;
   return (access(name.c_str(), F_OK) != -1);
 }
 
 void Selector::CreateHistograms()
 {
-  TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), ";p_{T}^{#mu} (GeV);Events",\
+  TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "",\
                       20, 10, 120);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 10);
-  //std::cout << "destroyed Plotter" << std::endl;
-  TH1F* h3 = new TH1F(prefix + TString("_AllMuons"), "", 20, 10, 120);
+  TH1F* h3 = new TH1F(prefix + TString("_MuonPt_raw"), "", 20, 10, 120);
   
 
   histograms.push_back(h1); 
@@ -98,13 +96,15 @@ void Selector::Loop()
 
   // Set Adresses to branches >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   Int_t NMuon;
+  Int_t NJet;
   Bool_t triggerIsoMu24;
   Float_t Muon_Px[3]; // just in case... memory is not a problem here
   Float_t Muon_Py[3];
   Float_t Muon_Pz[3];
   Float_t Muon_E[3];
-  Float_t Jet_btag[5]; 
+  Float_t Jet_btag[10]; 
   Float_t EventWeight;
+
 
   tree->SetBranchAddress("NMuon", &NMuon); //
   tree->SetBranchAddress("Muon_Px", &Muon_Px);
@@ -113,6 +113,7 @@ void Selector::Loop()
   tree->SetBranchAddress("Muon_E", &Muon_E);
   tree->SetBranchAddress("triggerIsoMu24", &triggerIsoMu24);
   tree->SetBranchAddress("EventWeight", &EventWeight);
+  tree->SetBranchAddress("NJet", &NJet);
   tree->SetBranchAddress("Jet_btag", &Jet_btag);
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -136,25 +137,35 @@ void Selector::Loop()
 
     
 
-    // full analysis >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // full analysis >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-    GetHisto("AllMuons")->Fill(muon.Pt(), weight);
+    GetHisto("MuonPt_raw")->Fill(muon.Pt(), weight);
 
     if (triggerIsoMu24) 
     {
-      // fill histos >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       GetHisto("MuonPt")->Fill(muon.Pt(), weight); 
-      GetHisto("Jet_btag")->Fill(Jet_btag[0], weight);
-      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      if (NJet > 0 && NJet < 10)
+      {
+        for (int j = 0; j < NJet; j++)
+          {
+            GetHisto("Jet_btag")->Fill(Jet_btag[j], weight);
+          }
+      }
+      
+      if (muon.Pt() > 26.7)
+      {      
+        if (NJet == 2)  
+        {
+          
+        }
+      }
     }
 
 
-    //std::cout << Jet_btag[0] << ' ' << Jet_btag[1] << ' '\
-    //<< Jet_btag[2] << ' ' << Jet_btag[3] << ' ' << Jet_btag[4] << std::endl;
 
+    // <<<<<<<<<<<<<<<<<<<<<<<<>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   }
 
 
