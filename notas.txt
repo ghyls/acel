@@ -32,6 +32,74 @@ al que empieza a sereficiente es 24.
 
 El error es (1-eps)/2.  
 
+--------------------------------------------------------------------------------
+
+Aceptancia:
+
+
+la eff del trigger se calcula, las demás vienen el el guion
+
+Aceptancia -> de todos los ttbar que dan lo que buscamos no estamos mididendo
+todos, por la geometría del detector (cortes cinematicos) -> no reconstruimos
+cosas con bajo pt ni las que van pegadas al haz -> se salen de la aceptancia.
+
+A = sucesoss_visibles / toods_los_sucesos_generados
+
+los visibles son los que se detectarían a eficiencia  1
+
+metoddoos para calc aceptancia
+
+
+A:::::::::::::::::
+
+calcular el cociente de arriba. Sucesos generados son los que están en
+ttbar.root. Para los vissibles, realizamos una selección en las variables
+cinematicas. Usamos las variables de generacion de los trees, que dan toda la
+información del evento(cuarks, neutrinos, bs, etc). 
+
+Cogemos toods los cortes finales de los datos y se la aicamos a los sucesos de
+generación, y eso da los sucesos visibles.
+
+B:::::::::::::::::
+
+
+Ntt = Ngenerados*A*eff*BR
+-> Aceptancia = Ntt/(Ngen*eff*BR)
+
+BR se calcula con los valores del pdg, la eficiencia es el producto de las
+eficiencias
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Printing number of events for histogram MuonPt:
 ----------------------------------------------------
