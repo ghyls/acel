@@ -18,20 +18,21 @@
 void terminator()
 {
 
-//    MPI_Comm comm;
-//    MPI_Status status;
-//    int size, rank;
-//  
-//    comm = MPI_COMM_WORLD;
-//  
-//    MPI_Init(NULL, NULL);
-//  
-//    MPI_Comm_size(comm, &size);
-//    MPI_Comm_rank(comm, &rank);
-//  
-//    std::cout << "Hello from rank " << rank << '!' << std::endl;
-//    if (rank==0) {std::cout << "Running on " << size << " process(es)!";}
-    int rank = 0;  
+    MPI_Comm comm;
+    MPI_Status status;
+    int size, rank;
+  
+    comm = MPI_COMM_WORLD;
+  
+    MPI_Init(NULL, NULL);
+  
+    MPI_Comm_size(comm, &size);
+    MPI_Comm_rank(comm, &rank);
+  
+    std::cout << "Hello from rank " << rank << '!' << std::endl;
+    if (rank==0) {
+      std::cout << "Running on " << size << " process(es)!" << std::endl;}
+    //int rank = 0;  
 
     std::string pathToFiles = "./practica/files/";
     std::string dataFile = "data";
@@ -61,11 +62,13 @@ void terminator()
       plot->PrintEvents("MuonPt");
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
+
+
     if(rank==RANKS[1])
     {
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     plot = new Plotter({"wjets", "ttbar"}, pathToFiles, prefix, "");
-    plot->SetTitle("Muon Pt");
+    plot->SetTitle("Jet btag");
     plot->SetXTitle("Jet_btag");
     plot->SetLegendPos(0.7, 0.8, 0.88, 0.88); plot->SetYTitle("Events");
     plot->Stack("Jet_btag", 1000);
@@ -73,6 +76,7 @@ void terminator()
     plot->PrintEvents("Jet_btag");
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
+
 
     if(rank==RANKS[2])
     {
@@ -82,40 +86,28 @@ void terminator()
     plot->SetXTitle("Ptmuon");
     plot->SetLegendPos(0.7, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
 
-    plot ->plotWithRatio("AllMuons", "MuonPt");
+    plot->plotWithRatio("MuonPt", "MuonPt_raw", "RATIO", 0, 1.1);
 
-    plot->PrintEvents("AllMuons");
+    plot->PrintEvents("MuonPt_raw");
     plot->PrintEvents("MuonPt");
+
+    // plot->GetTriggerEff();
+
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 
-//    MPI_Finalize();
+    MPI_Finalize();
 
 
 }
+
+
+
 
 
 int main()
 {
     terminator();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//mpirun --oversubscribe -n 4 ./main
-//mpic++ -o main terminator.cpp selector.cpp plotter.cpp `root-config --cflags --glibs`
-
 
 
