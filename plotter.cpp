@@ -140,7 +140,24 @@ void Plotter::PrintEvents(TString name)
   }
 }
 
-void Plotter::plotWithRatio(TString nameH1, TString nameH2)
+
+void Plotter::GetTriggerEff()
+{
+  TH1F* h1 = listOfSelectors[0].GetHisto("MuonPt");
+  TH1F* h2 = listOfSelectors[0].GetHisto("MuonPt_raw");
+
+  Int_t nbins = h1->GetNbinsX();
+  float eff[nbins];
+  
+  for (int i = 0; i < nbins; i++)
+  {
+    eff[i] = h1->Integral(i, nbins)/h2->Integral(i, nbins);
+    std::cout << eff[i] << std::endl;
+  }
+}
+
+void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString rLabel, \
+                            float rMin, float rMax, float max)
 {
 
   TH1F* h1 = listOfSelectors[0].GetHisto(nameH1);
@@ -166,6 +183,12 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2)
   h1->SetStats(0);          // No statistics on upper plot
   h1->Draw("hist");         // Draw h1
   h2->Draw("same, hist");   // Draw h2 on top of h1
+
+  Float_t maxData = std::max(h1->GetMaximum(), h2->GetMaximum());
+  Float_t minData = std::min(h1->GetMinimum(), h2->GetMinimum());
+  h1->SetMaximum(maxData *1.1);
+  h1->SetMinimum(0);  
+  if (max != 999) {h1->SetMaximum(max);}    // .. range
   
   // lower plot will be in pad2
   c->cd();          // Go back to the main canvas before defining pad2
@@ -182,8 +205,8 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2)
 
   TH1F *h3 = (TH1F*)h1->Clone("h3");
   h3->SetLineColor(kBlack);
-  h3->SetMinimum(0);    // Define Y ..
-  h3->SetMaximum(3);    // .. range
+  h3->SetMinimum(rMin);    // Define Y ..
+  h3->SetMaximum(rMax);    // .. range
   h3->Sumw2();
   h3->SetStats(0);      // No statistics on lower plot
   h3->Divide(h2);       // ~ h1/h2
@@ -213,11 +236,17 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2)
   h1->GetXaxis()->SetLabelFont(43);
   h1->GetXaxis()->SetLabelSize(15);
 
+  DrawOverflowBin(h1);
+  DrawOverflowBin(h2);
+
+
+
+
   // Leyenda
   pad1->cd();  
   TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); // x0, y0, x1, y1
-  leg.AddEntry(h1, nameH1, "l");
-  leg.AddEntry(h2, nameH2, "l");
+  leg.AddEntry(h1, nameH1 + Form(": %1.0f", h1->Integral()), "l");
+  leg.AddEntry(h2, nameH2 + Form(": %1.0f", h2->Integral()), "l");
   leg.SetTextSize(0.043);
   leg.Draw();
 
@@ -225,7 +254,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2)
   h3->SetTitle(""); // Remove the ratio title
 
   // Y axis
-  h3->GetYaxis()->SetTitle("ratio");
+  h3->GetYaxis()->SetTitle(rLabel);
   h3->GetYaxis()->SetTitleSize(20);
   h3->GetYaxis()->SetTitleFont(43);
   h3->GetYaxis()->SetTitleOffset(1.55);
@@ -247,7 +276,12 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2)
   c->Print("DiMuPt.png", "png");
 }
 
-
+void Plotter::DrawOverflowBin(TH1F* h)
+{
+  Float_t overflow = h->GetBinContent(h->GetNbinsX()) + \
+                    h->GetBinContent(h->GetNbinsX() + 1);
+  h->SetBinContent(h->GetNbinsX(), overflow);
+}
 
 void Plotter::Stack(TString name, Float_t maxY)
 {
@@ -271,12 +305,13 @@ void Plotter::Stack(TString name, Float_t maxY)
   
     h->SetFillColor(listOfColors[i]);
     h->SetLineColor(kBlack);
+    DrawOverflowBin(h);
     hs->Add(h);
-    leg.AddEntry(h, listOfSelectors[i].process, "f");
+    leg.AddEntry(h, listOfSelectors[i].process + Form(": %1.0f", \
+                  h->Integral()), "f");
   }
 
   hs->Draw("hist");
-
   if (title  != "") {hs->SetTitle(title);}
   if (xtitle != "") {hs->GetXaxis()->SetTitle(xtitle);}
   if (ytitle != "") {hs->GetYaxis()->SetTitle(ytitle);}
@@ -295,7 +330,8 @@ void Plotter::Stack(TString name, Float_t maxY)
     Float_t maxData = hdata->GetMaximum();
     if (max < maxData) {max = maxData;}
 
-    leg.AddEntry(hdata, dataSelector->prefix, "p");
+    leg.AddEntry(hdata, dataSelector->process + Form(": %1.0f", \
+                  hdata->Integral()), "p");
   }
   
   leg.Draw("same");
