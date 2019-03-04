@@ -31,7 +31,7 @@ void terminator()
   
     std::cout << "Hello from rank " << rank << '!' << std::endl;
     if (rank==0) {
-      std::cout << "Running on " << size << " process(es)!" << std::endl;}
+      std::cout << "Running on " << size << " process(es)!\n" << std::endl;}
     //int rank = 0;  
 
     std::string pathToFiles = "./practica/files/";
@@ -52,7 +52,7 @@ void terminator()
     if(rank==RANKS[0])
     {
       // mu mu Pt >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      plot = new Plotter(MCsamples, pathToFiles, prefix, "data");
+      plot = new Plotter(MCsamples, pathToFiles, "data");
       //plot.SetColors(colors);
       plot->SetTitle("Muon Pt");
       plot->SetXTitle("muonPt");
@@ -60,31 +60,36 @@ void terminator()
       plot->Stack("MuonPt");
   
       plot->PrintEvents("MuonPt");
+      delete plot;
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
-
 
     if(rank==RANKS[1])
     {
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    plot = new Plotter({"wjets", "ttbar"}, pathToFiles, prefix, "");
+    plot = new Plotter({"wjets", "ttbar"}, pathToFiles, "");
+    //plot = new Plotter(MCsamples, pathToFiles, "");
     plot->SetTitle("Jet btag");
     plot->SetXTitle("Jet_btag");
     plot->SetLegendPos(0.7, 0.8, 0.88, 0.88); plot->SetYTitle("Events");
-    plot->Stack("Jet_btag", 1000);
+    plot->Stack("Jet_btag", 200);
 
     plot->PrintEvents("Jet_btag");
+    delete plot;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 
+    /*
+    */
 
     if(rank==RANKS[2])
     {
     // Trigger eff. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    plot = new Plotter({"ttbar"}, pathToFiles, prefix, "");
+    plot = new Plotter({"ttbar"}, pathToFiles, "");
+    //plot = new Plotter(MCsamples, pathToFiles, "");
     plot->SetTitle("Eficiencia del trigger");
     plot->SetXTitle("Ptmuon");
-    plot->SetLegendPos(0.7, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
+    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
 
     plot->plotWithRatio("MuonPt", "MuonPt_raw", "RATIO", 0, 1.1);
 
@@ -92,7 +97,7 @@ void terminator()
     plot->PrintEvents("MuonPt");
 
     // plot->GetTriggerEff();
-
+    delete plot;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 

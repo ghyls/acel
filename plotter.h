@@ -16,6 +16,7 @@ class Plotter
     public:
 
         Selector* dataSelector;
+        Selector* bkgSelector;
 
         Float_t fLegX1, fLegY1, fLegX2, fLegY2;
 
@@ -26,8 +27,8 @@ class Plotter
 
 
         Plotter();
-        Plotter(std::vector<std::string> bkgs, std::string pathToFiles,  
-               std::string prefixForHistos, std::string data);
+        Plotter(std::vector<std::string> bkgs, std::string pathToFiles, 
+                    std::string data);
 
         ~Plotter();       
 
@@ -48,7 +49,7 @@ class Plotter
 
     private:
 
-        std::vector <Selector> listOfSelectors;
+        std::vector <Selector*> listOfSelectors;
         TString data;
         std::vector <Int_t> listOfColors;
 };

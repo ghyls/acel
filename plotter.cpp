@@ -15,7 +15,7 @@
 
 
 Plotter::Plotter(std::vector<std::string> bkgs, std::string pathToFiles,  
-std::string prefixForHistos, std::string data_)
+                 std::string data_)
 {
 
   LegendTextSize  = 0.030;
@@ -25,22 +25,30 @@ std::string prefixForHistos, std::string data_)
   data = data_;
   listOfSelectors = {}; // initialization!
 
+  //bkgSelector = new Selector(pathToFiles, bkgs[0]);
   for (unsigned int i = 0; i < bkgs.size(); i++)
   {
-    Selector sel(pathToFiles, bkgs[i], prefixForHistos);
-    listOfSelectors.push_back(sel); 
+    bkgSelector = new Selector(pathToFiles, bkgs[i]);
+    listOfSelectors.push_back(bkgSelector); 
     listOfColors.push_back(i+1);
   }
   
   if (data_ != "")
   {
-    dataSelector = new Selector(pathToFiles, data_, prefixForHistos);
+    dataSelector = new Selector(pathToFiles, data_);
   }
 }
 
 Plotter::~Plotter()
 {
-  std::cout << "destroyed Plotter" << std::endl;
+  if (data != "") {delete dataSelector;} //else: it does not exist
+  delete bkgSelector;
+  for (int i = 0; i < listOfSelectors.size()-1; i++)
+  {
+    delete listOfSelectors[i];
+  }
+
+  std::cout << "destroyed Plotter\n" << std::endl;
 }
 
 void Plotter::SetLegendPos(Float_t x1, Float_t y1, Float_t x2, Float_t y2)
@@ -90,17 +98,17 @@ TH1F* Plotter::GetHisto(TString name) //name is the name of the histo
         
     int numberOfSelectors = listOfSelectors.size();
     std::cout <<"plott, gethisto, N_SEL: " << numberOfSelectors << std::endl;
-    int numberOfHistos = listOfSelectors[0].GetNumberOfHistos();
+    int numberOfHistos = listOfSelectors[0]->GetNumberOfHistos();
 
     for (int i = 0; i < numberOfSelectors; i++)
     {
       for (int j = 0; j < numberOfHistos; j++)
       {
-        TString n = listOfSelectors[i].histograms[j]->GetName(); //full name
+        TString n = listOfSelectors[i]->histograms[j]->GetName(); //full name
         std::cout << "name: " << n << std::endl;
         if (!std::string(n).find(std::string(name))){continue;}
         //si no encuentras el histo, sigue adelante
-        return listOfSelectors[i].histograms[j];
+        return listOfSelectors[i]->histograms[j];
       }
     }
     throw;
@@ -117,34 +125,34 @@ void Plotter::PrintEvents(TString name)
   // Name is a name. Not a list or any other weird thing.
 
   std::cout << "\nPrinting number of events for histogram " << name << "\n";
-  std::cout << "---------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
 
   Int_t totalEvts = 0;
 
   for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
-    TH1F* h = listOfSelectors[i].GetHisto(name);
+    TH1F* h = listOfSelectors[i]->GetHisto(name);
 
-    std::cout << listOfSelectors[i].process <<": "<< h->Integral() << std::endl;
+    std::cout << listOfSelectors[i]->process <<": "<< h->Integral() << std::endl;
     totalEvts += h->Integral();
   }
 
   std::cout << "Total expected: " << totalEvts << std::endl;
-  std::cout << "--------------------" << std::endl;
+  std::cout << "------------------------" << std::endl;
 
   if (data != "")
   {
     TH1F* h = dataSelector->GetHisto(name);
     std::cout << "Observed: " << h->Integral() << std::endl;
-    std::cout << "--------------------" << std::endl;
+    std::cout << "------------------------" << std::endl;
   }
 }
 
 
 void Plotter::GetTriggerEff()
 {
-  TH1F* h1 = listOfSelectors[0].GetHisto("MuonPt");
-  TH1F* h2 = listOfSelectors[0].GetHisto("MuonPt_raw");
+  TH1F* h1 = listOfSelectors[0]->GetHisto("MuonPt");
+  TH1F* h2 = listOfSelectors[0]->GetHisto("MuonPt_raw");
 
   Int_t nbins = h1->GetNbinsX();
   float eff[nbins];
@@ -160,8 +168,8 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString rLabel, \
                             float rMin, float rMax, float max)
 {
 
-  TH1F* h1 = listOfSelectors[0].GetHisto(nameH1);
-  TH1F* h2 = listOfSelectors[0].GetHisto(nameH2);
+  TH1F* h1 = listOfSelectors[0]->GetHisto(nameH1);
+  TH1F* h2 = listOfSelectors[0]->GetHisto(nameH2);
 
   //do Plots
   TCanvas *c = new TCanvas("c", "canvas", 800, 800);
@@ -207,7 +215,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString rLabel, \
   h3->SetLineColor(kBlack);
   h3->SetMinimum(rMin);    // Define Y ..
   h3->SetMaximum(rMax);    // .. range
-  h3->Sumw2();
+  //h3->Sumw2();
   h3->SetStats(0);      // No statistics on lower plot
   h3->Divide(h2);       // ~ h1/h2
   h3->SetMarkerStyle(21);
@@ -298,7 +306,7 @@ void Plotter::Stack(TString name, Float_t maxY)
   // fill hstack >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
-    TH1F* h = listOfSelectors[i].GetHisto(name); // TODO: DON'T MAKE ME LAUGH
+    TH1F* h = listOfSelectors[i]->GetHisto(name); // TODO: DON'T MAKE ME LAUGH
     
     //std::cout << "name: " << h->GetName() << std::endl;
     //std::cout << "integral " << h->Integral() << std::endl;
@@ -307,7 +315,7 @@ void Plotter::Stack(TString name, Float_t maxY)
     h->SetLineColor(kBlack);
     DrawOverflowBin(h);
     hs->Add(h);
-    leg.AddEntry(h, listOfSelectors[i].process + Form(": %1.0f", \
+    leg.AddEntry(h, listOfSelectors[i]->process + Form(": %1.0f", \
                   h->Integral()), "f");
   }
 
@@ -338,5 +346,7 @@ void Plotter::Stack(TString name, Float_t maxY)
   if (maxY == -1){hs->SetMaximum(max*1.1);}
   else{hs->SetMaximum(maxY);}
   c->Print(name + ".png", "png");
+
+  delete c, hs;
 }
 

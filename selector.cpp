@@ -20,10 +20,8 @@
 
 
 
-Selector::Selector(std::string _filePath, std::string _fileName, \
-                    std::string _prefix)
+Selector::Selector(std::string _filePath, std::string _fileName)
 {
-
 
   if (!fileExist(_filePath + _fileName + ".root"))
   {
@@ -36,10 +34,21 @@ Selector::Selector(std::string _filePath, std::string _fileName, \
   process = _fileName;
   filePath = TString(_filePath);  // including last '/'
 
-  prefix = TString(_prefix);      //
-
-  CreateHistograms();
+  CreateHistograms(process);
   Loop();
+
+}
+
+Selector::~Selector()
+{
+  for (int i = 0; i < histograms.size(); i++)
+  {
+    delete histograms[i];
+
+  }
+
+  histograms.clear();
+  histograms = {};
 }
 
 TH1F* Selector::GetHisto(TString name) //name is the name of the histo
@@ -48,8 +57,8 @@ TH1F* Selector::GetHisto(TString name) //name is the name of the histo
     for (int i = 0; i < len; i++)
     {
       TString n = histograms[i]->GetName(); //full name
-            
-      if ((prefix + '_' + name) == n)
+
+      if ((process + '_' + name) == n)
         return histograms[i];
     }
 
@@ -71,8 +80,10 @@ bool Selector::fileExist(const std::string name)
   return (access(name.c_str(), F_OK) != -1);
 }
 
-void Selector::CreateHistograms()
+void Selector::CreateHistograms(TString prefix)
 {
+
+  
   TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "",\
                       20, 10, 120);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 10);

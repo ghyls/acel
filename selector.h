@@ -12,16 +12,18 @@ class Selector
   public:
 
     std::vector<TH1F*> histograms; 
-    TString prefix;                 // prefix for ALL histos
     TString process;                // without .root
 
     Selector();
-    Selector(std::string _filePath, std::string _fileName, std::string _prefix);
+    ~Selector();       
+
+    Selector(std::string _filePath, std::string _fileName);
     
     TH1F* GetHisto(TString name);
 
     int GetNumberOfHistos();
 
+    void CreateHistograms(TString prefix);
 
 
   private:
@@ -30,7 +32,6 @@ class Selector
 
     bool fileExist(const std::string name);
 
-    void CreateHistograms();
 
     void Loop();
 };
