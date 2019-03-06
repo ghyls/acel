@@ -122,3 +122,215 @@ alias sublime3='~/Downloads/sublime_text_3/sublime_text'
 
 mpirun --oversubscribe -n 4 ./main
 mpic++ -o main terminator.cpp selector.cpp plotter.cpp `root-config --cflags --glibs`
+
+
+
+******************************************************************************
+*Tree    :events    :                                                        *
+*Entries :    36941 : Total =        11013423 bytes  File  Size =    5488041 *
+*        :          : Tree compression factor =   2.00                       *
+******************************************************************************
+*Br    0 :NJet      : NJet/I                                                 *
+*Entries :    36941 : Total  Size=     148610 bytes  File Size  =      26965 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   5.49     *
+*............................................................................*
+*Br    1 :Jet_Px    : Jet_Px[NJet]/F                                         *
+*Entries :    36941 : Total  Size=     737956 bytes  File Size  =     622361 *
+*Baskets :       28 : Basket Size=      32000 bytes  Compression=   1.18     *
+*............................................................................*
+*Br    2 :Jet_Py    : Jet_Py[NJet]/F                                         *
+*Entries :    36941 : Total  Size=     737956 bytes  File Size  =     622423 *
+*Baskets :       28 : Basket Size=      32000 bytes  Compression=   1.18     *
+*............................................................................*
+*Br    3 :Jet_Pz    : Jet_Pz[NJet]/F                                         *
+*Entries :    36941 : Total  Size=     737956 bytes  File Size  =     627438 *
+*Baskets :       28 : Basket Size=      32000 bytes  Compression=   1.17     *
+*............................................................................*
+*Br    4 :Jet_E     : Jet_E[NJet]/F                                          *
+*Entries :    36941 : Total  Size=     737924 bytes  File Size  =     599164 *
+*Baskets :       28 : Basket Size=      32000 bytes  Compression=   1.23     *
+*............................................................................*
+*Br    5 :Jet_btag  : Jet_btag[NJet]/F                                       *
+*Entries :    36941 : Total  Size=     738020 bytes  File Size  =     309099 *
+*Baskets :       28 : Basket Size=      32000 bytes  Compression=   2.38     *
+*............................................................................*
+*Br    6 :Jet_ID    : Jet_ID[NJet]/O                                         *
+*Entries :    36941 : Total  Size=     296324 bytes  File Size  =      70214 *
+*Baskets :       14 : Basket Size=      32000 bytes  Compression=   4.21     *
+*............................................................................*
+*Br    7 :NMuon     : NMuon/I                                                *
+*Entries :    36941 : Total  Size=     148619 bytes  File Size  =      12525 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=  11.83     *
+*............................................................................*
+*Br    8 :Muon_Px   : Muon_Px[NMuon]/F                                       *
+*Entries :    36941 : Total  Size=     174824 bytes  File Size  =      44941 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.88     *
+*............................................................................*
+*Br    9 :Muon_Py   : Muon_Py[NMuon]/F                                       *
+*Entries :    36941 : Total  Size=     174824 bytes  File Size  =      44924 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.88     *
+*............................................................................*
+*Br   10 :Muon_Pz   : Muon_Pz[NMuon]/F                                       *
+*Entries :    36941 : Total  Size=     174824 bytes  File Size  =      45151 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.86     *
+*............................................................................*
+*Br   11 :Muon_E    : Muon_E[NMuon]/F                                        *
+*Entries :    36941 : Total  Size=     174809 bytes  File Size  =      44050 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.95     *
+*............................................................................*
+*Br   12 :Muon_Charge : Muon_Charge[NMuon]/I                                 *
+*Entries :    36941 : Total  Size=     174877 bytes  File Size  =      21849 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   7.97     *
+*............................................................................*
+*Br   13 :Muon_Iso  : Muon_Iso[NMuon]/F                                      *
+*Entries :    36941 : Total  Size=     174839 bytes  File Size  =      41798 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   4.17     *
+*............................................................................*
+*Br   14 :NElectron : NElectron/I                                            *
+*Entries :    36941 : Total  Size=     148655 bytes  File Size  =      12705 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=  11.66     *
+*............................................................................*
+*Br   15 :Electron_Px : Electron_Px[NElectron]/F                             *
+*Entries :    36941 : Total  Size=     175356 bytes  File Size  =      45660 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.83     *
+*............................................................................*
+*Br   16 :Electron_Py : Electron_Py[NElectron]/F                             *
+*Entries :    36941 : Total  Size=     175356 bytes  File Size  =      45684 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.82     *
+*............................................................................*
+*Br   17 :Electron_Pz : Electron_Pz[NElectron]/F                             *
+*Entries :    36941 : Total  Size=     175356 bytes  File Size  =      45887 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.81     *
+*............................................................................*
+*Br   18 :Electron_E : Electron_E[NElectron]/F                               *
+*Entries :    36941 : Total  Size=     175341 bytes  File Size  =      44812 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.90     *
+*............................................................................*
+*Br   19 :Electron_Charge : Electron_Charge[NElectron]/I                     *
+*Entries :    36941 : Total  Size=     175409 bytes  File Size  =      22115 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   7.90     *
+*............................................................................*
+*Br   20 :Electron_Iso : Electron_Iso[NElectron]/F                           *
+*Entries :    36941 : Total  Size=     175371 bytes  File Size  =      44285 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.95     *
+*............................................................................*
+*Br   21 :NPhoton   : NPhoton/I                                              *
+*Entries :    36941 : Total  Size=     148637 bytes  File Size  =      12614 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=  11.74     *
+*............................................................................*
+*Br   22 :Photon_Px : Photon_Px[NPhoton]/F                                   *
+*Entries :    36941 : Total  Size=     174890 bytes  File Size  =      44961 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.88     *
+*............................................................................*
+*Br   23 :Photon_Py : Photon_Py[NPhoton]/F                                   *
+*Entries :    36941 : Total  Size=     174890 bytes  File Size  =      44937 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.88     *
+*............................................................................*
+*Br   24 :Photon_Pz : Photon_Pz[NPhoton]/F                                   *
+*Entries :    36941 : Total  Size=     174890 bytes  File Size  =      45101 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.86     *
+*............................................................................*
+*Br   25 :Photon_E  : Photons_E[NPhoton]/F                                   *
+*Entries :    36941 : Total  Size=     174878 bytes  File Size  =      44114 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.95     *
+*............................................................................*
+*Br   26 :Photon_Iso : Photon_Iso[NPhoton]/F                                 *
+*Entries :    36941 : Total  Size=     174905 bytes  File Size  =      43854 *
+*Baskets :       11 : Basket Size=      32000 bytes  Compression=   3.97     *
+*............................................................................*
+*Br   27 :MET_px    : MET_px/F                                               *
+*Entries :    36941 : Total  Size=     148628 bytes  File Size  =     138608 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.07     *
+*............................................................................*
+*Br   28 :MET_py    : MET_py/F                                               *
+*Entries :    36941 : Total  Size=     148628 bytes  File Size  =     138559 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.07     *
+*............................................................................*
+*Br   29 :MChadronicBottom_px : MChadronicBottom_px/F                        *
+*Entries :    36941 : Total  Size=     148745 bytes  File Size  =      80274 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.85     *
+*............................................................................*
+*Br   30 :MChadronicBottom_py : MChadronicBottom_py/F                        *
+*Entries :    36941 : Total  Size=     148745 bytes  File Size  =      80274 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.85     *
+*............................................................................*
+*Br   31 :MChadronicBottom_pz : MChadronicBottom_pz/F                        *
+*Entries :    36941 : Total  Size=     148745 bytes  File Size  =      80889 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.83     *
+*............................................................................*
+*Br   32 :MCleptonicBottom_px : MCleptonicBottom_px/F                        *
+*Entries :    36941 : Total  Size=     148745 bytes  File Size  =      80355 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   33 :MCleptonicBottom_py : MCleptonicBottom_py/F                        *
+*Entries :    36941 : Total  Size=     148745 bytes  File Size  =      80184 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.85     *
+*............................................................................*
+*Br   34 :MCleptonicBottom_pz : MCleptonicBottom_pz/F                        *
+*Entries :    36941 : Total  Size=     148745 bytes  File Size  =      80942 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.83     *
+*............................................................................*
+*Br   35 :MChadronicWDecayQuark_px : MChadronicWDecayQuark_px/F              *
+*Entries :    36941 : Total  Size=     148790 bytes  File Size  =      80603 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   36 :MChadronicWDecayQuark_py : MChadronicWDecayQuark_py/F              *
+*Entries :    36941 : Total  Size=     148790 bytes  File Size  =      80647 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   37 :MChadronicWDecayQuark_pz : MChadronicWDecayQuark_pz/F              *
+*Entries :    36941 : Total  Size=     148790 bytes  File Size  =      80991 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.83     *
+*............................................................................*
+*Br   38 :MChadronicWDecayQuarkBar_px : MChadronicWDecayQuarkBar_px/F        *
+*Entries :    36941 : Total  Size=     148817 bytes  File Size  =      80595 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   39 :MChadronicWDecayQuarkBar_py : MChadronicWDecayQuarkBar_py/F        *
+*Entries :    36941 : Total  Size=     148817 bytes  File Size  =      80559 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   40 :MChadronicWDecayQuarkBar_pz : MChadronicWDecayQuarkBar_pz/F        *
+*Entries :    36941 : Total  Size=     148817 bytes  File Size  =      81094 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.83     *
+*............................................................................*
+*Br   41 :MClepton_px : MClepton_px/F                                        *
+*Entries :    36941 : Total  Size=     148673 bytes  File Size  =      80530 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   42 :MClepton_py : MClepton_py/F                                        *
+*Entries :    36941 : Total  Size=     148673 bytes  File Size  =      80556 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   43 :MClepton_pz : MClepton_pz/F                                        *
+*Entries :    36941 : Total  Size=     148673 bytes  File Size  =      81044 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.83     *
+*............................................................................*
+*Br   44 :MCleptonPDGid : MCleptonPDGid/I                                    *
+*Entries :    36941 : Total  Size=     148691 bytes  File Size  =      29321 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   5.05     *
+*............................................................................*
+*Br   45 :MCneutrino_px : MCneutrino_px/F                                    *
+*Entries :    36941 : Total  Size=     148691 bytes  File Size  =      80521 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   46 :MCneutrino_py : MCneutrino_py/F                                    *
+*Entries :    36941 : Total  Size=     148691 bytes  File Size  =      80474 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.84     *
+*............................................................................*
+*Br   47 :MCneutrino_pz : MCneutrino_pz/F                                    *
+*Entries :    36941 : Total  Size=     148691 bytes  File Size  =      80996 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   1.83     *
+*............................................................................*
+*Br   48 :NPrimaryVertices : NPrimaryVertices/I                              *
+*Entries :    36941 : Total  Size=     148718 bytes  File Size  =      37525 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   3.95     *
+*............................................................................*
+*Br   49 :triggerIsoMu24 : triggerIsoMu24/O                                  *
+*Entries :    36941 : Total  Size=      37622 bytes  File Size  =       6206 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=   5.98     *
+*............................................................................*
+*Br   50 :EventWeight : EventWeight/F                                        *
+*Entries :    36941 : Total  Size=     148673 bytes  File Size  =      49023 *
+*Baskets :        5 : Basket Size=      32000 bytes  Compression=   3.02     *
+*............................................................................*
