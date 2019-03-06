@@ -45,7 +45,7 @@ void terminator()
                                 kAzure-8, kOrange+1, kRed+1};
 
     MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
-    Plotter * plot;
+    static Plotter * plot;
 
     int RANKS[3] = {0, 0, 0};
 
@@ -91,7 +91,7 @@ void terminator()
     plot->SetXTitle("Ptmuon");
     plot->SetLegendPos(0.6, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
 
-    plot->plotWithRatio("MuonPt", "MuonPt_raw", "RATIO", 0, 1.1);
+    plot->plotWithRatio("MuonPt", "MuonPt_raw", "diMuPt", "RATIO", 0, 1.1);
 
     plot->PrintEvents("MuonPt_raw");
     plot->PrintEvents("MuonPt");
@@ -101,6 +101,24 @@ void terminator()
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 
+    if(rank==RANKS[2])
+    {
+    // Trigger eff. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    plot = new Plotter({"ttbar"}, pathToFiles, "");
+    //plot = new Plotter(MCsamples, pathToFiles, "");
+    plot->SetTitle("Aceptancia");
+    plot->SetXTitle("asd");
+    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
+
+    plot->plotWithRatio("Acep_obs", "Acep_gen", "acept", "RATIO", 0, 2);
+
+    plot->PrintEvents("Acep_obs");
+
+
+    // plot->GetTriggerEff();
+    delete plot;
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    }
     MPI_Finalize();
 
 
