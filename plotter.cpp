@@ -164,8 +164,8 @@ void Plotter::GetTriggerEff()
   }
 }
 
-void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString rLabel, \
-                            float rMin, float rMax, float max)
+void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString title, \
+                            TString rLabel, float rMin, float rMax, float max)
 {
 
   TH1F* h1 = listOfSelectors[0]->GetHisto(nameH1);
@@ -281,7 +281,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString rLabel, \
 
 
   // Guardamos la figura como .png y .pdf
-  c->Print("DiMuPt.png", "png");
+  c->Print(title + ".png", "png");
 }
 
 void Plotter::DrawOverflowBin(TH1F* h)

@@ -42,8 +42,8 @@ class Plotter
         int GetEvents(TString name);
         void PrintEvents(TString name);
         void Stack(TString name, Float_t maxY = -1);
-        void plotWithRatio(TString nameH1, TString nameH2, TString rLabel, \
-                         float rMin = 999, float rMax = 999, float max = 999);
+        void plotWithRatio(TString nameH1, TString nameH2, TString title, \
+                            TString rLabel, float rMin, float rMax, float max = 999);
         void DrawOverflowBin(TH1F* h);
         void GetTriggerEff();
 
