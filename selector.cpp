@@ -83,23 +83,23 @@ bool Selector::fileExist(const std::string name)
 void Selector::CreateHistograms(TString prefix)
 {
 
-  
-  TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "",\
-                      20, 10, 120);
+  //there variables may be called from other cpps.
+  TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "", 20, 10, 120);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 10);
   TH1F* h3 = new TH1F(prefix + TString("_MuonPt_raw"), "", 20, 10, 120);
+  TH1F* h4 = new TH1F(prefix + TString("_Acep_gen"), "", 20, -1, 2);
+  TH1F* h5 = new TH1F(prefix + TString("_Acep_obs"), "", 20, -1, 2);
   
-
   histograms.push_back(h1); 
   histograms.push_back(h2); 
   histograms.push_back(h3); 
+  histograms.push_back(h4); 
+  histograms.push_back(h5); 
 
-  //add here more histograms   
 }
 
 void Selector::Loop()
 { 
-  //TFile f(filePath + fileName);
   TFile f(filePath + process + ".root");
   TTree * tree = (TTree *) f.Get("events");
 
@@ -116,6 +116,9 @@ void Selector::Loop()
   Float_t Jet_btag[10]; 
   Float_t EventWeight;
 
+  Float_t MClepton_px[3], MClepton_py[3], MClepton_pz[3];
+
+
 
   tree->SetBranchAddress("NMuon", &NMuon); //
   tree->SetBranchAddress("Muon_Px", &Muon_Px);
@@ -126,6 +129,9 @@ void Selector::Loop()
   tree->SetBranchAddress("EventWeight", &EventWeight);
   tree->SetBranchAddress("NJet", &NJet);
   tree->SetBranchAddress("Jet_btag", &Jet_btag);
+  tree->SetBranchAddress("MClepton_px", &MClepton_px);
+  tree->SetBranchAddress("MClepton_py", &MClepton_py);
+  tree->SetBranchAddress("MClepton_pz", &MClepton_pz);
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   // Loop over every event >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -142,6 +148,10 @@ void Selector::Loop()
     TLorentzVector muon;
     muon.SetPxPyPzE(Muon_Px[0], Muon_Py[0], Muon_Pz[0], Muon_E[0]);
 
+    TLorentzVector muonGen;
+    muonGen.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 0);
+    
+
     Float_t weight;
     if (process != "data") {weight = EventWeight;} else weight = 1;
  
@@ -154,8 +164,22 @@ void Selector::Loop()
 
     GetHisto("MuonPt_raw")->Fill(muon.Pt(), weight);
 
+
+    // Aceptancia >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    //ojo con el numero de muones... con el ID del PDG! 
     if (triggerIsoMu24) 
     {
+      if (muon.Pt() > 26.7)
+      {
+        GetHisto("Acep_obs")->Fill(0);
+      }
+      if (muonGen.Pt() > 26.7)
+      {
+        GetHisto("Acep_gen")->Fill(0);
+      }
+
+
       GetHisto("MuonPt")->Fill(muon.Pt(), weight); 
       if (NJet > 0 && NJet < 10)
       {
@@ -166,11 +190,19 @@ void Selector::Loop()
       }
       
       if (muon.Pt() > 26.7)
-      {      
-        if (NJet == 2)  
+      {
+        static int bJets = 0;      
+        if (NJet > 0 && NJet << 10)  
         {
-          
-        }
+          for (int j = 0; j < NJet; j++)
+          {
+            if (Jet_btag[j] > 1) {bJets ++;}
+          }
+          if (bJets > 0)
+          {
+            // TODO: something here
+          }  
+        }    
       }
     }
 
