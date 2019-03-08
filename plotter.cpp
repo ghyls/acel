@@ -70,7 +70,7 @@ void Plotter::SetColors(std::vector<Int_t> col)
 {
   listOfColors = col;
 }
-
+/*
 
 void Plotter::SetTitle(TString _title)
 {
@@ -87,6 +87,16 @@ void Plotter::SetXTitle(TString _xtitle)
 void Plotter::SetYTitle(TString _ytitle)
 {
   ytitle = _ytitle;
+}
+*/
+
+void Plotter::SetTitles(TString _title, TString _xtitle, TString _ytitle, 
+                        TString _outName)
+{
+  title = _title;
+  xtitle = _xtitle;
+  ytitle = _ytitle;
+  outName = _outName;
 }
 
 
@@ -164,8 +174,8 @@ void Plotter::GetTriggerEff()
   }
 }
 
-void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString title, \
-                            TString rLabel, float rMin, float rMax, float max)
+void Plotter::plotWithRatio(TString nameH1, TString nameH2, \
+                TString rLabel, float rMin, float rMax, bool doLogY, float max)
 {
 
   TH1F* h1 = listOfSelectors[0]->GetHisto(nameH1);
@@ -173,7 +183,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString title, \
 
   //do Plots
   TCanvas *c = new TCanvas("c", "canvas", 800, 800);
-
+  if (doLogY) {c->SetLogy(1);}
   // Normalizamos los histogramas a 1
   // h1->Scale(1/h1->Integral());
   // h2->Scale(1/h2->Integral());
@@ -237,7 +247,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString title, \
   // Ejes y otras opciones... (solo en el primer histograma que pintamos)
   h1->SetStats(0);
   h1->SetTitle(title);
-  h1->GetYaxis()->SetTitle("Events");
+  h1->GetYaxis()->SetTitle(ytitle);
   h1->GetYaxis()->SetTitleOffset(1.2);
   h1->GetYaxis()->SetLabelFont(43);
   h1->GetYaxis()->SetLabelSize(15);
@@ -281,7 +291,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, TString title, \
 
 
   // Guardamos la figura como .png y .pdf
-  c->Print(title + ".png", "png");
+  c->Print(outName + ".png", "png");
 }
 
 void Plotter::DrawOverflowBin(TH1F* h)
@@ -291,11 +301,12 @@ void Plotter::DrawOverflowBin(TH1F* h)
   h->SetBinContent(h->GetNbinsX(), overflow);
 }
 
-void Plotter::Stack(TString name, Float_t maxY)
+void Plotter::Stack(TString name, bool doLogY, Float_t maxY)
 {
   // name is NOT a list
       
   TCanvas *c = new TCanvas("c", "canvas", 1000, 800);
+  if (doLogY) {c->SetLogy(1);}
   TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); 
   leg.SetTextSize(LegendTextSize);
   leg.SetBorderSize(0);
@@ -332,7 +343,8 @@ void Plotter::Stack(TString name, Float_t maxY)
   {
     TH1F* hdata = dataSelector->GetHisto(name); 
     hdata->SetMarkerStyle(20);
-    hdata->SetMarkerColor(kTeal+1); // 1
+    hdata->SetMarkerColor(1); // 1
+    DrawOverflowBin(hdata);
     hdata->Draw("pesame");
 
     Float_t maxData = hdata->GetMaximum();
@@ -345,7 +357,7 @@ void Plotter::Stack(TString name, Float_t maxY)
   leg.Draw("same");
   if (maxY == -1){hs->SetMaximum(max*1.1);}
   else{hs->SetMaximum(maxY);}
-  c->Print(name + ".png", "png");
+  c->Print(outName + ".png", "png");
 
   delete c, hs;
 }
