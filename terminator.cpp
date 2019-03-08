@@ -32,7 +32,6 @@ void terminator()
     std::cout << "Hello from rank " << rank << '!' << std::endl;
     if (rank==0) {
       std::cout << "Running on " << size << " process(es)!\n" << std::endl;}
-    //int rank = 0;  
 
     std::string pathToFiles = "./practica/files/";
     std::string dataFile = "data";
@@ -54,11 +53,19 @@ void terminator()
       // mu mu Pt >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       plot = new Plotter(MCsamples, pathToFiles, "data");
       //plot.SetColors(colors);
-      plot->SetTitle("Muon Pt");
-      plot->SetXTitle("muonPt");
-      plot->SetLegendPos(0.62, 0.6, 0.85, 0.85); plot->SetYTitle("Events");
+
+      plot->SetTitles("Muon Pt", "muonPt", "Events", "muonPt");
+      plot->SetLegendPos(0.62, 0.6, 0.85, 0.85);
       plot->Stack("MuonPt");
   
+      plot->SetTitles("MuMuMass", "MMMass", "Events", "muMuMass");
+      plot->SetLegendPos(0.6, 0.6, 0.9, 0.9);
+      plot->Stack("MuMuMass", true);
+
+      plot->SetTitles("Me gusta el miso", "MIso", "Events", "muon_Iso");
+      plot->SetLegendPos(0.6, 0.6, 0.9, 0.9);
+      plot->Stack("Muon_Iso", false, 20000);
+
       plot->PrintEvents("MuonPt");
       delete plot;
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -68,59 +75,39 @@ void terminator()
     {
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     plot = new Plotter({"wjets", "ttbar"}, pathToFiles, "");
-    //plot = new Plotter(MCsamples, pathToFiles, "");
-    plot->SetTitle("Jet btag");
-    plot->SetXTitle("Jet_btag");
-    plot->SetLegendPos(0.7, 0.8, 0.88, 0.88); plot->SetYTitle("Events");
-    plot->Stack("Jet_btag", 200);
+
+    plot->SetTitles("Jet btag","Jet_btag", "Events", "jet_btag");
+    plot->SetLegendPos(0.7, 0.8, 0.88, 0.88);
+    plot->Stack("Jet_btag", 0, 200);
 
     plot->PrintEvents("Jet_btag");
     delete plot;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 
-    /*
-    */
+
 
     if(rank==RANKS[2])
     {
     // Trigger eff. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     plot = new Plotter({"ttbar"}, pathToFiles, "");
-    //plot = new Plotter(MCsamples, pathToFiles, "");
-    plot->SetTitle("Eficiencia del trigger");
-    plot->SetXTitle("Ptmuon");
-    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
 
-    plot->plotWithRatio("MuonPt", "MuonPt_raw", "diMuPt", "RATIO", 0, 1.1);
+    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+    plot->SetTitles("Eficiencia del trigger", "Ptmuon", "Events", "triggEff");
+    plot->plotWithRatio("MuonPt_TriggOnly", "MuonPt_raw", "RATIO", 0, 1.1);
 
-    plot->PrintEvents("MuonPt_raw");
-    plot->PrintEvents("MuonPt");
+    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+    plot->SetTitles("Aceptancia", "xda", "Events", "aceptancia");
+    plot->plotWithRatio("Acep_obs", "Acep_gen", "RATIO", 0, 1, false);
 
-    // plot->GetTriggerEff();
-    delete plot;
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    }
-
-    if(rank==RANKS[2])
-    {
-    // Trigger eff. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    plot = new Plotter({"ttbar"}, pathToFiles, "");
-    //plot = new Plotter(MCsamples, pathToFiles, "");
-    plot->SetTitle("Aceptancia");
-    plot->SetXTitle("asd");
-    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9); plot->SetYTitle("Events");
-
-    plot->plotWithRatio("Acep_obs", "Acep_gen", "acept", "RATIO", 0, 2);
 
     plot->PrintEvents("Acep_obs");
-
-
     // plot->GetTriggerEff();
     delete plot;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
-    MPI_Finalize();
 
+    MPI_Finalize();
 
 }
 
@@ -130,7 +117,7 @@ void terminator()
 
 int main()
 {
-    terminator();
+  terminator();
 }
 
 
