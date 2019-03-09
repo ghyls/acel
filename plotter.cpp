@@ -14,15 +14,16 @@
 
 
 
-Plotter::Plotter(std::vector<std::string> bkgs, std::string pathToFiles,  
-                 std::string data_)
+Plotter::Plotter(std::vector<std::string> bkgs, std::string _pathToFiles,  
+                 std::string _data)
 {
 
   LegendTextSize  = 0.030;
   fLegX1 = 0.70, fLegY1 = 0.55, fLegX2 = 0.92, fLegY2 = 0.92;
 
 
-  data = data_;
+  data = _data;
+  pathToFiles = _pathToFiles;
   listOfSelectors = {}; // initialization!
 
   //bkgSelector = new Selector(pathToFiles, bkgs[0]);
@@ -33,9 +34,9 @@ Plotter::Plotter(std::vector<std::string> bkgs, std::string pathToFiles,
     listOfColors.push_back(i+1);
   }
   
-  if (data_ != "")
+  if (_data != "")
   {
-    dataSelector = new Selector(pathToFiles, data_);
+    dataSelector = new Selector(pathToFiles, _data);
   }
 }
 
@@ -156,30 +157,168 @@ void Plotter::PrintEvents(TString name)
     std::cout << "Observed: " << h->Integral() << std::endl;
     std::cout << "------------------------" << std::endl;
   }
+
+}
+void Plotter::PrintXSecData()
+// prints every ingredient for calculating the Xsec with its uncertainity, so we
+// can import it from python, an then propagate the errors. Also prints in the
+// command line the central value of the cross section. Fuck yeah.
+{
+  float totalMC = 0;
+  float totalData = 0;
+  float totalTTbar = 0;
+
+  for (unsigned int i = 0; i < listOfSelectors.size(); i++)
+  {
+    TH1F* h = listOfSelectors[i]->GetHisto("TempXSec");
+
+    totalMC +=h->Integral();
+    if (listOfSelectors[i]->process == "ttbar")
+    {
+      totalTTbar += h->Integral();
+    }
+  }
+
+  TH1F* h = dataSelector->GetHisto("TempXSec");
+  totalData += h->Integral();
+
+
+  //std::cout << totalMC << ' ' << totalData << ' ' << totalTTbar << std::endl;
+
+  float totalSignal = totalData - (totalMC - totalTTbar);
+
+  //std::cout << totalSignal << std::endl;
+  //http://pdglive.lbl.gov/Particle.action?node=Q007&init=0
+
+  std::cout << "\n\n================================" << std::endl;
+
+  std::vector<double> integralsBTag = GetBTagEff();
+  std::vector<double> integralsTEff = GetTriggerEff();
+  std::vector<double> integralsAcep = GetAcceptance();
+
+  float bTagEff = integralsBTag[0]/integralsBTag[1];
+  float triggEff = integralsTEff[0]/integralsTEff[1];
+  float muonEff = 0.99;   // pm 0.01
+  float lumi = 50;        // pb, pm 10%
+
+  //float acep = 2858. / 3500.;
+  float acep = integralsAcep[0]/integralsAcep[1];
+
+  float eff = triggEff * muonEff * bTagEff;
+  float BR = (0.13 + 0.7 * 0.17) * 0.66;
+  float sigma = totalSignal / (lumi * acep * eff * BR);
+  std::cout << "Cross Section: " << sigma << std::endl;
+  std::cout << "================================" << std::endl;
+
 }
 
-
-void Plotter::GetTriggerEff()
+std::vector<double> Plotter::GetTriggerEff()
 {
-  TH1F* h1 = listOfSelectors[0]->GetHisto("MuonPt");
-  TH1F* h2 = listOfSelectors[0]->GetHisto("MuonPt_raw");
+  TH1F* h1;
+  TH1F* h2;
+
+  for (int i = 0; i < listOfSelectors.size(); i++)
+  {
+    if (listOfSelectors[i]->process == "ttbar")
+    {
+      h1 = listOfSelectors[i]->GetHisto("MuonPt_TriggOnly");
+      h2 = listOfSelectors[i]->GetHisto("MuonPt_raw");
+    }
+  }
+
+
+  //tempSelector = new Selector(pathToFiles, "ttbar");
+  //TH1F* h1 = tempSelector->GetHisto("MuonPt_TriggOnly");
+  //TH1F* h2 = tempSelector->GetHisto("MuonPt_raw");
+
+  //listOfSelectors.push_back(bkgSelector); 
+
 
   Int_t nbins = h1->GetNbinsX();
-  float eff[nbins];
+  std::vector <float> eff = {};
   
   for (int i = 0; i < nbins; i++)
   {
-    eff[i] = h1->Integral(i, nbins)/h2->Integral(i, nbins);
-    std::cout << eff[i] << std::endl;
+    eff.push_back(h1->Integral(i, nbins)/h2->Integral(i, nbins));
+    //std::cout << eff[i] << std::endl; 
+  }
+
+  // find the index of the element coorresponding to the max eff.
+  float max = *max_element(std::begin(eff), std::end(eff));
+  for (int i = 0; i < nbins; i++)
+  {
+    if (eff[i] == max)
+    {
+      // returns the operation for the Trigg. Eff with the current Pt_min cut.
+      std::cout << "Trigger eff: " << eff[i] << std::endl;  
+
+      std::vector<double> integrals = \
+                              {h1->Integral(i, nbins), h2->Integral(i, nbins)};
+      return integrals;
+    } 
   }
 }
+  
 
-void Plotter::plotWithRatio(TString nameH1, TString nameH2, \
+std::vector<double> Plotter::GetAcceptance()
+{
+  TH1F* h1;
+  TH1F* h2;
+
+  for (int i = 0; i < listOfSelectors.size(); i++)
+  {
+    if (listOfSelectors[i]->process == "ttbar")
+    {
+      h1 = listOfSelectors[i]->GetHisto("Acep_gen");
+      h2 = listOfSelectors[i]->GetHisto("Acep_obs");
+    }
+  }
+
+  float acept = h1->Integral()/h2->Integral();
+  std::cout << "Aceptance: " << acept << std::endl;
+  
+  std::vector<double> integrals = {h1->Integral(), h2->Integral()};
+  return integrals;
+  
+}
+
+std::vector<double> Plotter::GetBTagEff()
+// TODO: rename me
+{
+  TH1F* h1;
+  TH1F* h2;
+
+  for (int i = 0; i < listOfSelectors.size(); i++)
+  {
+    if (listOfSelectors[i]->process == "ttbar")
+    {
+      h1 = listOfSelectors[i]->GetHisto("BJet_Pt");
+      h2 = listOfSelectors[i]->GetHisto("Jets_GEN_Pt");
+    }
+  }
+  float bTagEff = h1->Integral()/h2->Integral();
+
+  std::cout << "B tagging eff: " << bTagEff << std::endl;  
+
+  std::vector<double> integrals = {h1->Integral(), h2->Integral()};
+  return integrals;
+}
+
+void Plotter::plotWithRatio(TString process, TString nameH1, TString nameH2, \
                 TString rLabel, float rMin, float rMax, bool doLogY, float max)
 {
 
-  TH1F* h1 = listOfSelectors[0]->GetHisto(nameH1);
-  TH1F* h2 = listOfSelectors[0]->GetHisto(nameH2);
+  TH1F* h1;
+  TH1F* h2;
+
+  for (int i = 0; i < listOfSelectors.size(); i++)
+  {
+    if (listOfSelectors[i]->process == process)
+    {
+      h1 = listOfSelectors[i]->GetHisto(nameH1);
+      h2 = listOfSelectors[i]->GetHisto(nameH2);
+    }
+  }
 
   //do Plots
   TCanvas *c = new TCanvas("c", "canvas", 800, 800);
@@ -292,6 +431,7 @@ void Plotter::plotWithRatio(TString nameH1, TString nameH2, \
 
   // Guardamos la figura como .png y .pdf
   c->Print(outName + ".png", "png");
+  delete c;
 }
 
 void Plotter::DrawOverflowBin(TH1F* h)
