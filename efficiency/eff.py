@@ -22,7 +22,7 @@ eff.drawVerticalLine(26.6667, u"$p_T$ = 26.7 GeV")
 
 
 eff.setProperties(title, xlabel=xlabel, ylabel=ylabel, legLoc=4, xlim=[10, 60])
-
+#eff.showGraph()
 eff.saveFig(outputName)
 
 
