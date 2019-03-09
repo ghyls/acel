@@ -66,11 +66,32 @@ void terminator()
       plot->SetLegendPos(0.6, 0.6, 0.9, 0.9);
       plot->Stack("Muon_Iso", false, 20000);
 
+
+
+      plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+      plot->SetTitles("Eficiencia del trigger", "Ptmuon", "Events", "triggEff");
+      plot->plotWithRatio("ttbar", "MuonPt_TriggOnly", "MuonPt_raw", "RATIO", 0, 1.1);
+
+      plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+      plot->SetTitles("Aceptancia", "xda", "Events", "aceptancia");
+      plot->plotWithRatio("ttbar", "Acep_obs", "Acep_gen", "RATIO", 0, 1, false);
+
+      plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+      plot->SetTitles("BJet_Pt", "BJet pt", "Events", "deleteme");
+      plot->plotWithRatio("ttbar", "Hadr_BJet_Pt_GEN", "Lept_BJet_Pt_GEN", "RATIO", 0, 1, false);
+      
+      plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+      plot->SetTitles("Bjets gen vs jets med.", "BJet pt", "Events", "eff B");
+      plot->plotWithRatio("ttbar", "BJet_Pt", "Jets_GEN_Pt", "RATIO", 0.3, 1.5, false);
+
+
+
       plot->PrintEvents("MuonPt");
+      plot->PrintXSecData();
       delete plot;
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
-
+/*
     if(rank==RANKS[1])
     {
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -84,29 +105,35 @@ void terminator()
     delete plot;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
+*/
 
 
 
-    if(rank==RANKS[2])
-    {
-    // Trigger eff. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    plot = new Plotter({"ttbar"}, pathToFiles, "");
-
-    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
-    plot->SetTitles("Eficiencia del trigger", "Ptmuon", "Events", "triggEff");
-    plot->plotWithRatio("MuonPt_TriggOnly", "MuonPt_raw", "RATIO", 0, 1.1);
-
-    plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
-    plot->SetTitles("Aceptancia", "xda", "Events", "aceptancia");
-    plot->plotWithRatio("Acep_obs", "Acep_gen", "RATIO", 0, 1, false);
-
-
-    plot->PrintEvents("Acep_obs");
-    // plot->GetTriggerEff();
-    delete plot;
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    }
-
+//    if(rank==RANKS[2])
+//    {
+//    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//    plot = new Plotter({"ttbar"}, pathToFiles, "");
+//
+//    //plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+//    //plot->SetTitles("Eficiencia del trigger", "Ptmuon", "Events", "triggEff");
+//    //plot->plotWithRatio("ttbar", "MuonPt_TriggOnly", "MuonPt_raw", "RATIO", 0, 1.1);
+//
+//
+//    //plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+//    //plot->SetTitles("BJet_Pt", "BJet pt", "Events", "CCCCCC");
+//    //plot->plotWithRatio("ttbar", "Hadr_BJet_Pt_GEN", "Lept_BJet_Pt_GEN", "RATIO", 0, 1, false);
+//
+//    //plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
+//    //plot->SetTitles("Bjets gen vs jets med.", "BJet pt", "Events", "deleteme");
+//    //plot->plotWithRatio("ttbar", "BJet_Pt", "Jets_GEN_Pt", "RATIO", 0.3, 1.5, false);
+//
+//
+//
+//    //plot->PrintEvents("Acep_obs");
+//    //plot->GetTriggerEff();
+//    delete plot;
+//    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//    }
     MPI_Finalize();
 
 }
