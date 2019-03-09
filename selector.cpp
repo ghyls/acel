@@ -334,11 +334,6 @@ void Selector::Loop()
           GetHisto("Jets_GEN_Pt")->Fill(JetLeptGEN.Pt(), weight);
         }
 
-        // para cada bJet, llenar el histo de jets con su pt. Luego, hacer lo
-        // mismo con otro histo con el Pt del numero de jets de la generacion.
-        // proceder igual que con trigg eff. Para cada valor del momento, y para
-        // cada valor de btag_lim pintar un histo en 2d con la eficiencia.
-
       }
     }
 
