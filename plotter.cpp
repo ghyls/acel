@@ -3,6 +3,7 @@
 #include "plotter.h"
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include "TH1.h"
@@ -210,6 +211,15 @@ void Plotter::PrintXSecData()
   std::cout << "Cross Section: " << sigma << std::endl;
   std::cout << "================================" << std::endl;
 
+  std::ofstream f;
+  f.open("./PyTools/xsec.dat");
+  f << "# Btag, Teff, Acep, [int[0], int[1]]" << std::endl;
+  f << "# this is an auto-generated file. You better don't edit it \n\n";
+
+  f << integralsBTag[0] << ' ' << integralsBTag[1] << std::endl;
+  f << integralsTEff[0] << ' ' << integralsTEff[1] << std::endl;
+  f << integralsAcep[0] << ' ' << integralsAcep[1] << std::endl;
+  f.close();
 }
 
 std::vector<double> Plotter::GetTriggerEff()
@@ -279,7 +289,6 @@ std::vector<double> Plotter::GetAcceptance()
   
   std::vector<double> integrals = {h1->Integral(), h2->Integral()};
   return integrals;
-  
 }
 
 std::vector<double> Plotter::GetBTagEff()
