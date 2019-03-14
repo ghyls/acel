@@ -2,7 +2,9 @@
 
 #include <string>
 #include <mpi.h>
+
 #include "TH1.h"
+#include "TLorentzVector.h"
 
 
 
@@ -22,6 +24,8 @@ class Selector
     TH1F* GetHisto(TString name);
 
     int GetNumberOfHistos();
+    float Module(float x, float y, float z);
+    float DR(TLorentzVector v1, TLorentzVector v2);
 
     void CreateHistograms(TString prefix);
 
