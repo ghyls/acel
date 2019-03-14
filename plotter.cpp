@@ -198,6 +198,7 @@ void Plotter::PrintXSecData()
   std::vector<double> integralsAcep = GetAcceptance();
 
   float bTagEff = integralsBTag[0]/integralsBTag[1];
+  bTagEff = 0.8;
   float triggEff = integralsTEff[0]/integralsTEff[1];
   float muonEff = 0.99;   // pm 0.01
   float lumi = 50;        // pb, pm 10%
@@ -206,7 +207,7 @@ void Plotter::PrintXSecData()
   float acep = integralsAcep[0]/integralsAcep[1];
 
   float eff = triggEff * muonEff * bTagEff;
-  float BR = (0.13 + 0.7 * 0.17) * 0.66;
+  float BR = (0.134 + 0.71 * 0.1739) * 0.665;
   float sigma = totalSignal / (lumi * acep * eff * BR);
   std::cout << "Cross Section: " << sigma << std::endl;
   std::cout << "================================" << std::endl;
@@ -219,6 +220,7 @@ void Plotter::PrintXSecData()
   f << integralsBTag[0] << ' ' << integralsBTag[1] << std::endl;
   f << integralsTEff[0] << ' ' << integralsTEff[1] << std::endl;
   f << integralsAcep[0] << ' ' << integralsAcep[1] << std::endl;
+  f << totalData << ' ' << totalMC - totalTTbar << std::endl;
   f.close();
 }
 
@@ -306,7 +308,6 @@ std::vector<double> Plotter::GetBTagEff()
     }
   }
   float bTagEff = h1->Integral()/h2->Integral();
-
   std::cout << "B tagging eff: " << bTagEff << std::endl;  
 
   std::vector<double> integrals = {h1->Integral(), h2->Integral()};
@@ -450,35 +451,117 @@ void Plotter::DrawOverflowBin(TH1F* h)
   h->SetBinContent(h->GetNbinsX(), overflow);
 }
 
-void Plotter::Stack(TString name, bool doLogY, Float_t maxY)
+
+template <typename S> 
+TString returnFuckingName(S _name, TString process)
 {
-  // name is NOT a list
-      
+  std::cout << typeid(S).name() << std::endl;
+  std::cout << typeid(process).name() << std::endl;
+  
+  if (typeid(S) == typeid(std::vector<TString>)) // is string
+  {
+    std::cout << "hassssssssssssdasd" << std::endl;
+    return process;
+  }
+  else if (typeid(S) == typeid(const char*)) // is string
+  {
+    std::cout << "hasdasd" << std::endl;
+    return _name;
+  }
+}
+
+//template  void Plotter::Stack(char const*, TString, 
+                        //std::vector<TString>, bool, Float_t);
+//template  void Plotter::Stack(std::vector <TString>, TString, bool, Float_t);
+
+//template <typename T>
+
+
+
+
+void Plotter::Stack(TString name, TString process, bool drawRatios, std::vector<TString> histoNames, \
+                    bool doLogY, Float_t maxY)
+{
+  
+  float minPad1;
+  if (drawRatios)
+  {
+    minPad1 = 0.3;
+  }
+  else
+  {
+    minPad1 = 0;
+  }
+
   TCanvas *c = new TCanvas("c", "canvas", 1000, 800);
-  if (doLogY) {c->SetLogy(1);}
+
+
+  //name = returnFuckingName(_name, process);
+
+
+  TH1F* hdata;
+  
+  THStack *hs = new THStack("hstack_" + name, "hstack");
+
+
+  TPad *pad1 = new TPad("pad1", "pad1", 0, minPad1, 1, 1);
+  if (doLogY) {pad1->SetLogy(1);}
+
+  pad1->SetBottomMargin(0.05); 
+  pad1->SetGridx();         // Vertical grid
+  pad1->Draw();             // Draw the upper pad: pad1
+  pad1->cd();               // pad1 becomes the current pad    
   TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); 
   leg.SetTextSize(LegendTextSize);
   leg.SetBorderSize(0);
   leg.SetFillColor(10);
-
-  THStack *hs = new THStack("hstack_" + name, "hstack");
-      
-  // fill hstack >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  for (unsigned int i = 0; i < listOfSelectors.size(); i++)
-  {
-    TH1F* h = listOfSelectors[i]->GetHisto(name); // TODO: DON'T MAKE ME LAUGH
-    
-    //std::cout << "name: " << h->GetName() << std::endl;
-    //std::cout << "integral " << h->Integral() << std::endl;
   
-    h->SetFillColor(listOfColors[i]);
-    h->SetLineColor(kBlack);
-    DrawOverflowBin(h);
-    hs->Add(h);
-    leg.AddEntry(h, listOfSelectors[i]->process + Form(": %1.0f", \
-                  h->Integral()), "f");
+
+
+
+  // if we want to stack different histos from the SAME process
+  if (process == "")// if we want to stack the same histo for DIFERENT processes
+  {
+    for (unsigned int i = 0; i < listOfSelectors.size(); i++)
+    {
+      TH1F* h = listOfSelectors[i]->GetHisto(name); // TODO: DON'T MAKE ME LAUGH
+      
+      //std::cout << "name: " << h->GetName() << std::endl;
+      //std::cout << "integral " << h->Integral() << std::endl;
+    
+
+      h->SetFillColor(listOfColors[i]);
+      h->SetLineColor(kBlack);
+      DrawOverflowBin(h);
+      
+      
+      hs->Add(h);
+      leg.AddEntry(h, listOfSelectors[i]->process + Form(": %1.0f", \
+                    h->Integral()), "f");
+    }
+  }
+  else
+  {
+    std::cout << "hi bro!" << std::endl;
+    for (unsigned int j = 0; j < listOfSelectors.size(); j++)
+    {
+      if (listOfSelectors[j]->process != process) {continue;}
+      
+      for (unsigned int i = 0; i < histoNames.size(); i++)
+      {
+
+        TH1F* h = listOfSelectors[j]->GetHisto(TString(histoNames[i]));
+        h->SetFillColor(listOfColors[i]);
+        h->SetLineColor(kBlack);
+        DrawOverflowBin(h);
+        hs->Add(h);
+        leg.AddEntry(h, histoNames[i] + Form(": %1.0f", \
+                      h->Integral()), "f");
+      }
+    }
   }
 
+  pad1->cd();
   hs->Draw("hist");
   if (title  != "") {hs->SetTitle(title);}
   if (xtitle != "") {hs->GetXaxis()->SetTitle(xtitle);}
@@ -488,9 +571,9 @@ void Plotter::Stack(TString name, bool doLogY, Float_t maxY)
   TH1 *aux = ((TH1*)(hs->GetStack()->Last()));
   Float_t max = aux->GetMaximum(); // why do I have to do this in 2 lines?
   
-  if (data != "")
+  if (data != "" && process == "")
   {
-    TH1F* hdata = dataSelector->GetHisto(name); 
+    hdata = dataSelector->GetHisto(name); 
     hdata->SetMarkerStyle(20);
     hdata->SetMarkerColor(1); // 1
     DrawOverflowBin(hdata);
@@ -502,12 +585,46 @@ void Plotter::Stack(TString name, bool doLogY, Float_t maxY)
     leg.AddEntry(hdata, dataSelector->process + Form(": %1.0f", \
                   hdata->Integral()), "p");
   }
+
   
-  leg.Draw("same");
+  if (drawRatios && process == "")
+  {
+
+
+    c->cd();          // Go back to the main canvas before defining pad2
+    TPad *pad2 = new TPad("pad2", "pad2", 0, 0.05, 1, 0.3);
+    pad2->SetTopMargin(0.05);
+    pad2->SetBottomMargin(0.2);
+    pad2->SetGridx(); // vertical grid
+    pad2->SetGridy(); // vertical grid
+    pad2->Draw();
+    pad2->cd();       // pad2 becomes the current pad
+    
+    TH1F *h3 = (TH1F*)hdata->Clone("h3");
+    h3->SetLineColor(kBlack);
+    h3->SetMinimum(0);
+    h3->SetMaximum(2);
+
+    h3->GetYaxis()->SetTitle("Data/MC");
+    h3->GetYaxis()->SetTitleSize(20);
+    h3->GetYaxis()->SetTitleFont(43);
+    h3->GetYaxis()->SetTitleOffset(1.55);
+    h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+    h3->GetYaxis()->SetLabelSize(15);
+
+
+    h3->SetStats(0);      // No statistics on lower plot
+    h3->Divide(aux);       // ~ h1/h2
+    h3->SetMarkerStyle(21);
+    h3->Draw("ep");       // Draw the ratio plot
+  }
+  
+  pad1->cd(); leg.Draw("same");
   if (maxY == -1){hs->SetMaximum(max*1.1);}
   else{hs->SetMaximum(maxY);}
   c->Print(outName + ".png", "png");
 
   delete c, hs;
+  
 }
 
