@@ -43,7 +43,9 @@ class Plotter
         TH1F* GetHisto(TString name);
         int GetEvents(TString name);
         void PrintEvents(TString name);
-        void Stack(TString name,  bool doLogY = 0, Float_t maxY = -1);
+        //template <typename T>
+        void Stack(TString _name, TString process, bool drawRatios, std::vector<TString> hisoNames = {},
+                    bool doLogY = 0, Float_t maxY = -1);
         void plotWithRatio(TString process, TString nameH1, TString nameH2, \
         TString rLabel, float rMin, float rMax, bool doLogY = 0, float max = 999);
         void DrawOverflowBin(TH1F* h);
