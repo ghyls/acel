@@ -116,14 +116,14 @@ void terminator()
     if(rank==RANKS[1])
     {
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//    plot = new Plotter({"wjets", "ttbar"}, pathToFiles, "");
-//
-//    plot->SetTitles("Jet btag","Jet_btag", "Events", "jet_btag");
-//    plot->SetLegendPos(0.7, 0.8, 0.88, 0.88);
-//    plot->Stack("Jet_btag", "", false, 200);
-//
-//    plot->PrintEvents("Jet_btag");
-//    delete plot;
+      plot = new Plotter({"wjets", "ttbar"}, pathToFiles, "");
+
+      plot->SetTitles("Jet btag","Jet_btag", "Events", "jet_btag");
+      plot->SetLegendPos(0.7, 0.8, 0.88, 0.88);
+      plot->Stack("Jet_btag", "", false, {}, false, 200);
+
+      plot->PrintEvents("Jet_btag");
+      delete plot;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 
