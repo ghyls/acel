@@ -105,9 +105,11 @@ void Selector::CreateHistograms(TString prefix)
 
   TH1F* h14 = new TH1F(prefix + TString("_MCMassHadrW"), "", 100, 60, 100);
   TH1F* h15 = new TH1F(prefix + TString("_MCMassLeptW"), "", 100, 60, 100);
-  TH1F* h16 = new TH1F(prefix + TString("_MCMassHadrT"), "", 20, 0, 200);
-  TH1F* h17 = new TH1F(prefix + TString("_MCMassLeptT"), "", 20, 0, 200);
+  TH1F* h16 = new TH1F(prefix + TString("_MCMassHadrT"), "", 100, 171.8, 173);
+  TH1F* h17 = new TH1F(prefix + TString("_MCMassLeptT"), "", 100, 171.8, 173);
   TH1F* h18 = new TH1F(prefix + TString("_JetMatchSuccess"), "", 12, -1, 3);
+  TH1F* h19 = new TH1F(prefix + TString("_MassHadrW"), "", 12, 60, 100);
+  TH1F* h20 = new TH1F(prefix + TString("_MassLeptW"), "", 12, 60, 100);
 
 
   histograms.push_back(h1); 
@@ -128,6 +130,8 @@ void Selector::CreateHistograms(TString prefix)
   histograms.push_back(h16); 
   histograms.push_back(h17); 
   histograms.push_back(h18); 
+  histograms.push_back(h19); 
+  histograms.push_back(h20); 
 }
 
 float Selector::Module(float x, float y, float z)
@@ -178,6 +182,7 @@ void Selector::Loop()
   Float_t Muon_Py[5];
   Float_t Muon_Pz[5];
   Float_t Muon_E[5];
+  Float_t MET_px, MET_py;
   Float_t Muon_Iso[5];
   Float_t EventWeight;
   Float_t MClepton_px[5], MClepton_py[5], MClepton_pz[5];
@@ -191,6 +196,8 @@ void Selector::Loop()
   tree->SetBranchAddress("Muon_Py", &Muon_Py);
   tree->SetBranchAddress("Muon_Pz", &Muon_Pz);
   tree->SetBranchAddress("Muon_E", &Muon_E);
+  tree->SetBranchAddress("MET_px", &MET_px);
+  tree->SetBranchAddress("MET_py", &MET_py);
   tree->SetBranchAddress("Muon_Iso", &Muon_Iso);
   tree->SetBranchAddress("triggerIsoMu24", &triggerIsoMu24);
   tree->SetBranchAddress("EventWeight", &EventWeight);
@@ -238,6 +245,8 @@ void Selector::Loop()
   {
     tree->GetEntry(i);
 
+    if (process == "data") {EventWeight = 1;}
+
     TLorentzVector leadMuon; 
     TLorentzVector muon2; 
 
@@ -245,34 +254,56 @@ void Selector::Loop()
     TLorentzVector jet;   // aux variables
     TLorentzVector jet2;  // aux variables
     TLorentzVector nu;    // aux variables
+    TLorentzVector W;
+    TLorentzVector b;
+
 
     // compute TMass from MC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (process == "ttbar" && MCneutrino_px != 0)
     {
-      // leptonic W
+      // leptonic W ............................................................
       Float_t muonP = Module(MClepton_px[0], MClepton_py[0], MClepton_pz[0]);
       Float_t muonE = TMath::Power(0.1056*0.1056 + muonP*muonP, 0.5);
       Float_t nuP = Module(MCneutrino_px, MCneutrino_py, MCneutrino_pz);
 
-      //std::cout << MCneutrino_px << std::endl;
 
       muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], muonE);
       nu.SetPxPyPzE(MCneutrino_px, MCneutrino_py, MCneutrino_pz, nuP);
-      GetHisto("MCMassLeptW")->Fill((muon + nu).M());
+      GetHisto("MCMassLeptW")->Fill((muon + nu).M(), EventWeight);
+      
+      // leptonic T ............................................................
+      Float_t bP = Module(MCleptonicBottom_px, MCleptonicBottom_py,
+                          MCleptonicBottom_pz);
+      Float_t bE = TMath::Power(4.18*4.18 + bP*bP, 0.5);
+      b.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, 
+                                                      MCleptonicBottom_pz, bE);
+      GetHisto("MCMassLeptT")->Fill((muon + nu + b).M(), EventWeight);
 
-      // hadronic W
-      Float_t B1P = Module(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py, 
+
+      // hadronic W ............................................................
+      Float_t q1P = Module(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py, 
                       MChadronicWDecayQuark_pz);
-      Float_t B2P = Module(MChadronicWDecayQuarkBar_px, 
+      Float_t q2P = Module(MChadronicWDecayQuarkBar_px, 
                       MChadronicWDecayQuarkBar_py, MChadronicWDecayQuarkBar_pz);
 
 
       jet.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py,
-                       MChadronicWDecayQuark_pz, B1P);
+                        MChadronicWDecayQuark_pz, q1P);
       jet2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, 
-                        MChadronicWDecayQuarkBar_pz, B2P);
-      GetHisto("MCMassHadrW")->Fill((jet + jet2).M());
+                        MChadronicWDecayQuarkBar_pz, q2P);
+      GetHisto("MCMassHadrW")->Fill((jet + jet2).M(), EventWeight);
+
+      // hadronic T ............................................................
+      bP = Module(MChadronicBottom_px, MChadronicBottom_py,
+                          MChadronicBottom_pz);
+      bE = TMath::Power(4.18*4.18 + bP*bP, 0.5);
+      b.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, 
+                                                      MChadronicBottom_pz, bE);
+      GetHisto("MCMassHadrT")->Fill((jet + jet2 + b).M(), EventWeight);
     }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
 
 
     Int_t NIsoMuon = 0;
@@ -286,7 +317,7 @@ void Selector::Loop()
       muon.SetPxPyPzE(Muon_Px[j], Muon_Py[j], Muon_Pz[j], Muon_E[j]); 
       //jet.SetPxPyPzE(Muon_Px[0], Muon_Py[0], Muon_Pz[0], Muon_E[0]); 
       
-      GetHisto("Muon_Iso")->Fill(Muon_Iso[j]/muon.Pt());
+      GetHisto("Muon_Iso")->Fill(Muon_Iso[j]/muon.Pt(), EventWeight);
       
       if (Muon_Iso[j]/muon.Pt() < 0.1)
       {
@@ -313,15 +344,13 @@ void Selector::Loop()
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-
+    
     // BTag Eff >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // TODO: identificar los btags.
-    // TODO: para cada b, emparejar con los GEN segun su vec p
-    // TODO: 
+    int bJets = 0;
+    bool jetIsB[20]; std::fill_n(jetIsB, 20, false); //init the array with zeros
+
     if (NJet > 0 && process == "ttbar")
     {
-      int bJets = 0; std::vector<int> indexBJets;
-
       // bTags generados -------------------------------------------------------
       TLorentzVector JetHadrGEN;
       TLorentzVector JetLeptGEN;
@@ -342,13 +371,14 @@ void Selector::Loop()
         float DRHadr, auxDRHadr = 999; int indexHadr = -1;
         float DRLept, auxDRLept = 999; int indexLept = -1;
         bool matchSuccess = false;
+
         for (int j = 0; j < NJet; j++)
         {
           GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
           if (Jet_btag[j] > BTAG_LIM && jet.Pt() > JET_MIN_PT)
           { // si es bTag
             bJets ++;
-            indexBJets.push_back(j);
+            jetIsB[j] = true;
 
             jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
 
@@ -378,11 +408,11 @@ void Selector::Loop()
 
         // si lo que pensabamos que era un BJet lo es, ponemos esta var. a true:
 
-        GetHisto("JetMatchSuccess")->Fill(bJets - NRecoJets);
+        GetHisto("JetMatchSuccess")->Fill(bJets - NRecoJets, EventWeight);
         
 
-        GetHisto("JetMatchedRECO")->Fill(NRecoJets);
-        GetHisto("JetBTaggedRECO")->Fill(bJets);
+        GetHisto("JetMatchedRECO")->Fill(NRecoJets, EventWeight);
+        GetHisto("JetBTaggedRECO")->Fill(bJets, EventWeight);
         
 
 
@@ -399,64 +429,105 @@ void Selector::Loop()
 //        if (JetLeptGEN.Pt() > JET_MIN_PT && JetLeptGEN.Pt() < JET_MAX_PT){
 //          GetHisto("Jets_GEN_Pt")->Fill(JetLeptGEN.Pt(), EventWeight);
 //        }
-
-
-
       }
-
-
-
     }
-
-
-
 
     // =========================================================================
     if (NIsoMuon != 1) {continue;} //  TTBAR ANALYSIS 
     // =========================================================================
-    if (process == "ttbar" && leadMuIndex != 0)
+
+
+
+
+    bJets = 0; std::fill_n(jetIsB, 20, false);
+    for (int j = 0; j < NJet; j++)
     {
-      //std::cout << leadMuIndex << std::endl;
-      //muon.SetPxPyPzE(Muon_Px[0], Muon_Py[0], Muon_Pz[0], Muon_E[0]); 
-      //std::cout << muon.Pt() << std::endl;
-      //muon.SetPxPyPzE(Muon_Px[leadMuIndex], Muon_Py[leadMuIndex], Muon_Pz[leadMuIndex], Muon_E[leadMuIndex]); 
-      //std::cout << muon.Pt() << std::endl;
-    } 
+      if (Jet_btag[j] > BTAG_LIM)
+      { // si es bTag
+        //if (process != "ttbar") std::cout << Jet_btag[j] << std::endl;
+        bJets ++;
+        jetIsB[j] = true;
+      }
+    }   
+    
+
+
+
     // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (TMath::Abs(MCleptonPDGid[leadMuIndex]) == 13) // solo los muones
     {
-      muon.SetPxPyPzE(MClepton_px[leadMuIndex], MClepton_py[leadMuIndex], MClepton_pz[leadMuIndex], 0);
+      muon.SetPxPyPzE(MClepton_px[leadMuIndex], MClepton_py[leadMuIndex], 
+                                                  MClepton_pz[leadMuIndex], 0);
   
       if (muon.Pt() > MUON_MIN_PT)
       {
-        GetHisto("Acep_gen")->Fill(0);
+        GetHisto("Acep_gen")->Fill(0.0, EventWeight);
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-    Float_t weight;
-    if (process != "data") {weight = EventWeight;} else weight = 1;
+
     
 
-    GetHisto("MuonPt_raw")->Fill(leadMuon.Pt(), weight);
+    GetHisto("MuonPt_raw")->Fill(leadMuon.Pt(), EventWeight);
 
      
     if (triggerIsoMu24) 
     {
-      GetHisto("MuonPt_TriggOnly")->Fill(leadMuon.Pt(), weight);
+      GetHisto("MuonPt_TriggOnly")->Fill(leadMuon.Pt(), EventWeight);
 
+    
       // Aceptancia >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       if (leadMuon.Pt() > MUON_MIN_PT)
       {
-        GetHisto("Acep_obs")->Fill(0);
+        GetHisto("Acep_obs")->Fill(0.0, EventWeight);
       }
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
 
       if (leadMuon.Pt() > MUON_MIN_PT)
       {
-        int bJets = 0;    
+
+        // compute TMass from Data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        if (NJet >= 4 && bJets >= 2) 
+        {
+          float Mjj = 0; float auxMjj = 0;
+
+          for (int j = 0; j < NJet; j++) // hadronico
+          {
+            for (int k = 0; k < NJet; k++)
+            {
+              if (!jetIsB[j] && !jetIsB[k] && j != k) // if it is not a b Jet
+              {
+                jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+                jet2.SetPxPyPzE(Jet_Px[k], Jet_Py[k], Jet_Pz[k], Jet_E[k]);
+
+                auxMjj = (jet + jet2).M();
+                if ((abs(auxMjj - 81) < abs(Mjj - 81)) && abs(auxMjj - 81) < 30)
+                {
+                  Mjj = auxMjj;
+                }
+              }
+            }
+          }
+          GetHisto("MassHadrW")->Fill(Mjj, EventWeight);
+
+
+          TLorentzVector nuAux;
+          nuAux.SetPx(MET_px); nuAux.SetPy(MET_py);
+          nuAux.SetE(TMath::Power(MET_px*MET_px + MET_py*MET_py, 0.5));
+         
+          float MLeptW = (nuAux + leadMuon).Mt();
+          if (abs(auxMjj - 81) < 30)
+          GetHisto("MassLeptW")->Fill(MLeptW, EventWeight);
+        }
+
+
+        // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+        bJets = 0;    
         std::vector <int> indexBJets = {}; 
         int nJetWithBigPt = 0;    // useless  
         if (NJet > 3)  
@@ -472,11 +543,12 @@ void Selector::Loop()
             }
             
           }
+            //std::cout << "ASDASDSASDSDSDA" << std::endl;
           if (bJets > 0)
           {
-            GetHisto("MuonPt")->Fill(leadMuon.Pt(), weight); 
+            GetHisto("MuonPt")->Fill(leadMuon.Pt(), EventWeight); 
             //GetHisto("MuonPt")->Fill(leadMuon.Pt(), weight); 
-            GetHisto("TempXSec")->Fill(1, weight); 
+            GetHisto("TempXSec")->Fill(1., EventWeight); 
             
           }  
         } 
@@ -487,7 +559,7 @@ void Selector::Loop()
                             Jet_Pz[indexBJets[j]], Jet_E[indexBJets[j]]);
           
           if (jet.Pt() > JET_MIN_PT && jet.Pt() < JET_MAX_PT)
-            GetHisto("BJet_Pt")->Fill(jet.Pt(), weight); 
+            GetHisto("BJet_Pt")->Fill(jet.Pt(), EventWeight); 
 
         }
         //std::cout << MChadronicWDecayQuark_px << std::endl;

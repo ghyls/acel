@@ -60,6 +60,11 @@ void terminator()
       histos = {"MCMassHadrW", "MCMassLeptW"};
       plot->Stack("", "ttbar", false, histos, false);
 
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("T Mass", "M_T", "Events", "leptTMass");
+      histos = {"MCMassHadrT", "MCMassLeptT"};
+      plot->Stack("", "ttbar", false, histos, false);
+
       //plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       //plot->SetTitles("bTag eff", "uff", "Events", "bTagEff");
       //histos = {"JetBTaggedRECO", "JetMatchedRECO"};
@@ -81,6 +86,14 @@ void terminator()
       plot->SetTitles("Me gusta el miso", "MIso", "Events", "muon_Iso");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->Stack("Muon_Iso", "", true, {}, false, 20000);
+
+      plot->SetTitles("Hadr W mass", "HadrW", "Events", "dataHadrWMass");
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->Stack("MassHadrW", "", true);
+
+      plot->SetTitles("lep W mass", "lepW", "Events", "datalepWMass");
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->Stack("MassLeptW", "", true);
     }
 
 
