@@ -23,10 +23,11 @@ M = np.loadtxt("xsec.dat")
 
 RAW_bTAgEff = M[0]      # medidos           | generados
 RAW_trigEff = M[1]      # pasan Trigger     | no lo pasan
-RAW_aceptan = M[2]      # datos observados  | generados
+acept = M[2][0]         
 
 totalData = M[3][0]
 totalBkg = M[3][1]
+print(acept, totalBkg, totalData, RAW_bTAgEff)
 
 # designaremos con MIN al numerador (ej. RAW_bTagEff[0]) y con MAX al
 # denominador (ej. RAW_bTagEff[1]) del cociente que de vuelve cada valor (ej. la
@@ -39,8 +40,7 @@ MAX_bTAgEff = RAW_bTAgEff[1]
 MIN_trigEff = RAW_trigEff[0]
 MAX_trigEff = RAW_trigEff[1]
 
-MIN_aceptan = RAW_aceptan[0]
-MAX_aceptan = RAW_aceptan[1]
+
 
 # inicializamos todas las variables >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -50,8 +50,6 @@ MAX_bTAgEff = sp.Symbol("MAN_bTAgEff")
 MIN_trigEff = sp.Symbol("MIN_trigEff")
 MAX_trigEff = sp.Symbol("MAN_trigEff")
 
-MIN_aceptan = sp.Symbol("MIN_aceptan")
-MAX_aceptan = sp.Symbol("MAN_acept")
 
 N = sp.Symbol("N")
 B = sp.Symbol("B")
@@ -66,8 +64,6 @@ variables =    [[MIN_bTAgEff, Data(RAW_bTAgEff[0], RAW_bTAgEff[0]**0.5)],
                 [MAX_bTAgEff, Data(RAW_bTAgEff[1], RAW_bTAgEff[1]**0.5)],
                 [MIN_trigEff, Data(RAW_trigEff[0], RAW_trigEff[0]**0.5)],
                 [MAX_trigEff, Data(RAW_trigEff[1], RAW_trigEff[1]**0.5)],
-                [MIN_aceptan, Data(RAW_aceptan[0], RAW_aceptan[0]**0.5)],
-                [MAX_aceptan, Data(RAW_aceptan[1], RAW_aceptan[1]**0.5)],
                 [N, Data(totalData, totalData**0.5)],
                 [B, Data(totalBkg, totalBkg**0.5)],
                 [muonEff, Data(0.99, 0.01)],
@@ -81,19 +77,21 @@ BRTToTauB = 0.71
 BRTauToMu = 0.1739
 BRTTo2JB = 0.665
 
+
+
 BRTTbarToMu = (BRTToMuB + BRTToTauB * BRTauToMu) * BRTTo2JB
 
 # definimos las cantidades que introducimos en la fórmula de Xsec >>>>>>>>>>>>>>
 
 bTagEff = MIN_bTAgEff / MAX_bTAgEff   # en datos
+bTagEff = 0.59925
+
 trigEff = MIN_trigEff / MAX_trigEff
-acept = MIN_aceptan / MAX_aceptan
 
 
 # y las incertidumbres de las eficiencias?
 #   trigger -> (1-eff)/2
 #   bt -> eff datos - eff MC
-
 
 # definimos la formula que devolverá la Xsec >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
