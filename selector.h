@@ -15,6 +15,12 @@ class Selector
 
     std::vector<TH1F*> histograms; 
     TString process;                // without .root
+  
+    float bIdentAndMatched = 0;
+    float totalGenB = 0;
+    float bTagEff = 0;
+    float acep = 0;
+
 
     Selector();
     ~Selector();       
