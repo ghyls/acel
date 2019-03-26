@@ -11,17 +11,19 @@
 
 // Selector corre una vez por muestra.
 
-// TODO: pintar todos los MC, uno encima del otro
-// TODO: pintar los datos en el mismo histo
-// TODO: crear histograma cociente
-// TODO: aplicar cortes
+// TODO: pintar todos los MC, uno encima del otro   DONE
+// TODO: pintar los datos en el mismo histo   DONE
+// TODO: crear histograma cociente    DONE
+// TODO: aplicar cortes   DONE
 
 
 #define JET_MIN_PT 30 // 30
 #define JET_MAX_PT 999
 #define DR_MAX_JETS 0.4
 #define MUON_MIN_PT 26.7 // 26.7
-#define BTAG_LIM 1.7
+#define BTAG_LIM 1.5
+#define MIN_TRUE_JETS 2
+#define MIN_B_JETS 1
 
 
 
@@ -41,7 +43,6 @@ Selector::Selector(std::string _filePath, std::string _fileName)
 
   CreateHistograms(process);
   Loop();
-
 }
 
 Selector::~Selector()
@@ -266,6 +267,7 @@ void Selector::Loop()
     TLorentzVector nu;    // aux variables
     TLorentzVector W;
     TLorentzVector b;
+    TLorentzVector b2;
 
 
     // compute TMass from MC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -326,28 +328,29 @@ void Selector::Loop()
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    // b tagging >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int bJets = 0;
-    bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
-    for (int j = 0; j < NJet; j++)
-    {
-      if (Jet_btag[j] > BTAG_LIM)
-      { // si es bTag
-        bJets ++;
-        jetIsB[j] = true;
-      }
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     // jet quality >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     int NTrueJets = 0;
     bool jetIsGood[20]; std::fill_n(jetIsGood, 20, false);
     for (int j = 0; j < NJet; j++)
     {
-      if (Jet_ID[j]) {NTrueJets++; jetIsGood[j] = true;}
+      if (Jet_ID[j] && jetHasGoodPt[j]) {NTrueJets++; jetIsGood[j] = true;}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+
+    // b tagging >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    int bJets = 0;
+    bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
+    for (int j = 0; j < NJet; j++)
+    {
+      if (Jet_btag[j] > BTAG_LIM && jetIsGood[j])
+      { // si es bTag
+        bJets ++;
+        jetIsB[j] = true;
+      }
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     Int_t NIsoMuon = 0;
 
@@ -381,93 +384,139 @@ void Selector::Loop()
     // Z mass >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (NIsoMuon > 1 && triggerIsoMu24)
     {
-      if(leadMuon.Pt() > MUON_MIN_PT)//|| muon2.Pt() > 20)
+      if(leadMuon.Pt() > MUON_MIN_PT)
       {
         GetHisto("MuMuMass")->Fill((leadMuon + muon2).M(), EventWeight);
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    //ifstd::cout << (bool)Jet_ID[0] << std::endl;
 
-
-
-    // tengo que cortar en el pt de los jets? La aceptancia y la eficiencia del
-    // trigger no dependen del analisis; el B tagging tampoco, y sale 0.46; Los
-    // BR están bien? ; como se calcula la aceptancia facil. El valor de la
-    // aceptancia está bien? Por qué sigo vivo? como se sale de VIM?
 
     // BTag Eff >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if (NTrueJets > 0  && process == "ttbar")
+    //if (NTrueJets > 0  && process == "ttbar")
+    if (process == "ttbar")
     {
       // bTags generados -------------------------------------------------------
-      TLorentzVector JetHadrGEN;
-      TLorentzVector JetLeptGEN;
+      TLorentzVector bHadrGEN;
+      TLorentzVector bLeptGEN;
 
-      JetHadrGEN.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, \
+      bHadrGEN.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, \
                               MChadronicBottom_pz, 794519024375104);
-
-      JetLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
+      bLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
                               MCleptonicBottom_pz, 794519024375104);
 
-      if (JetHadrGEN.Pt() > 0 && JetLeptGEN.Pt() > 0 && 
-          MCneutrino_px != 0) 
+      if (bHadrGEN.Pt() > 0 && bLeptGEN.Pt() > 0) // si hay dos b-Jets
         {
-        totalGenB += 2.;
-        //std::cout << JetLeptGEN.Eta() << std::endl;
-        // only semileptonic events
+        if (bHadrGEN.Pt() < 1) {std::cout << "asdasdsadasdsad" << std::endl;}
+        if (bLeptGEN.Pt() < 1) {std::cout << "popoipoipipoipo" << std::endl;}
+
+        //if (bHadrGEN.Pt() > JET_MIN_PT && bLeptGEN.Pt() > JET_MIN_PT)
+        {totalGenB += 2.;}
 
         // identificamos jets en reco
-        float DRHadr, auxDRHadr = 999; int indexHadr = -1;
-        float DRLept, auxDRLept = 999; int indexLept = -1;
-        bool matchSuccess = false;
-
+        float DRHadr, auxDRHadr = 999;
+        float DRLept, auxDRLept = 999;
 
         for (int j = 0; j < NJet; j++)
         {
           GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
-          if (jetIsB[j]/* && abs(jet.Pt()) > JET_MIN_PT*/ && jetIsGood[j])
-          {
 
+          if (jetIsB[j] && jetIsGood[j])
+          {
             jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
 
             // macheamos reco con gen
-            DRHadr = DR(JetHadrGEN, jet);
-            DRLept = DR(JetLeptGEN, jet);
+            DRHadr = DR(bHadrGEN, jet);
+            DRLept = DR(bLeptGEN, jet);
+
             if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr && DRHadr < DRLept){
-              if (auxDRHadr != 999) std::cout << "WTFFFFF Lept" << std::endl;
-              auxDRHadr = DRHadr;
-              bIdentAndMatched ++;
+              if (auxDRHadr == 999) // if is the first match
+              {
+                bIdentAndMatched ++;
+                auxDRHadr = DRHadr;
+              }
+              else std::cout << "WTFFFFF Hadr" << std::endl;
             }
             if(DRLept < DR_MAX_JETS && DRLept < auxDRLept && DRLept < DRHadr){
-              if (auxDRLept != 999) std::cout << "WTFFFFF Hadr" << std::endl;
-              auxDRLept = DRLept;
-              bIdentAndMatched ++;
+              if (auxDRLept == 999) // if is the first match
+              {
+                bIdentAndMatched ++;
+                auxDRLept = DRLept;
+              }
+              else std::cout << "WTFFFFF Lept" << std::endl;
+
             }            
           }
         }
 
-        // hay jets que puedo encajar tanto en hadr como en lept...
-
-        // jets totales reco: NJet
-        // jets totales reales: 2
-        // jets etiquetados como b: BJet
-        // jets que realmente son un b: <= 2, NRecoJets
-
+        // jets reconocidos por evento (máximo 2)
         int NRecoJets = 0;
         if (auxDRHadr != 999) {NRecoJets ++;}
         if (auxDRLept != 999) {NRecoJets ++;}
 
-        // si lo que pensabamos que era un BJet lo es, ponemos esta var. a true:
-
         GetHisto("JetMatchSuccess")->Fill(bJets - NRecoJets, EventWeight);
-        
-
         GetHisto("JetMatchedRECO")->Fill(NRecoJets, EventWeight);
         GetHisto("JetBTaggedRECO")->Fill(bJets, EventWeight);
       }
     }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-      //if (NMuon != 1 && NIsoMuon == 1) {std::cout <<"fuck you" << std::endl;} 
+    
+    //if (NMuon != 1 && NIsoMuon == 1) {
+    //  std::cout <<"go fuck yourself" << std::endl;} 
+
+
+    // trigger eff >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if (process == "ttbar" && TMath::Abs(MCleptonPDGid[0]) == 13)
+    {
+      muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
+
+      if (muon.Pt() > 0)
+      {
+        GetHisto("MuonPt_raw")->Fill(leadMuon.Pt(), EventWeight);
+
+        if (triggerIsoMu24) 
+        {
+          GetHisto("MuonPt_TriggOnly")->Fill(leadMuon.Pt(), EventWeight);
+        }
+      }
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+    // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if (process == "ttbar" && TMath::Abs(MCleptonPDGid[0]) == 13)
+    {
+      muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
+
+      if (muon.Pt() > MUON_MIN_PT)
+      {
+        jet.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py,
+                          MChadronicWDecayQuark_pz, 0);
+        jet2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, 
+                          MChadronicWDecayQuarkBar_pz, 0);
+        b.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, 
+                      MCleptonicBottom_pz, 0);
+        b2.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, 
+                      MChadronicBottom_pz, 0);
+        int GoodMCJets = 0;
+        int GoodMCbJets = 0;
+
+        if (jet.Pt() > JET_MIN_PT) {GoodMCJets ++;}
+        if (jet2.Pt() > JET_MIN_PT) {GoodMCJets ++;} 
+        if (b.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
+        if (b2.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
+
+        tmp++;
+        //if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
+        //    MCneutrino_px != 0 && MCleptonicBottom_px != 0)
+        if (GoodMCJets >= MIN_TRUE_JETS && GoodMCbJets >= MIN_B_JETS)
+        {
+          ttbarReco ++;
+        }
+      }
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
     // =========================================================================
@@ -480,36 +529,8 @@ void Selector::Loop()
     // =========================================================================
 
 
-    
-    // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if (process == "ttbar" && TMath::Abs(MCleptonPDGid[0]) == 13)
-    {
-      
-      muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
-
-      if (muon.Pt() > 0)
-      {
-        tmp++;
-        if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
-            MCneutrino_px != 0 && MCleptonicBottom_px != 0)
-        {
-          ttbarReco ++;
-        }
-      }
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-    
-    
-
-    GetHisto("MuonPt_raw")->Fill(leadMuon.Pt(), EventWeight);
-
-     
     if (triggerIsoMu24) 
     {
-      GetHisto("MuonPt_TriggOnly")->Fill(leadMuon.Pt(), EventWeight);
-    
       if (leadMuon.Pt() > MUON_MIN_PT)
       {
         // compute TMass from Data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -551,10 +572,9 @@ void Selector::Loop()
         //bJets = 0;    
         std::vector <int> indexBJets = {}; 
         //int jetIsB[20]; std::fill_n(jetIsB, 20, false);
-        if (NTrueJets > 3)  
+        if (NTrueJets >= MIN_TRUE_JETS)  
         {
-          //std::cout << "ASDASDSASDSDSDA" << std::endl;
-          if (bJets > 0)
+          if (bJets >= MIN_B_JETS)
           { 
             GetHisto("Acep_obs")->Fill(0.0, EventWeight);
             GetHisto("MuonPt")->Fill(leadMuon.Pt(), EventWeight); 
@@ -595,4 +615,39 @@ void Selector::Loop()
   }
 }
 
-
+/*
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`   `4!!!!!!!!!!~4!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   <~:   ~!!!~   ..  4!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  ~~~~~~~  '  ud$$$$$  !!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  ~~~~~~~~~: ?$$$$$$$$$  !!!!!!!!!!!!!!
+  !!!!!!!!!!!`     ``~!!!!!!!!!!!!!!  ~~~~~          "*$$$$$k `!!!!!!!!!!!!!
+  !!!!!!!!!!  $$$$$bu.  '~!~`     .  '~~~~      :~~~~          `4!!!!!!!!!!!
+  !!!!!!!!!  $$$$$$$$$$$c  .zW$$$$$E ~~~~      ~~~~~~~~  ~~~~~:  '!!!!!!!!!!
+  !!!!!!!!! d$$$$$$$$$$$$$$$$$$$$$$E ~~~~~    '~~~~~~~~    ~~~~~  !!!!!!!!!!
+  !!!!!!!!> 9$$$$$$$$$$$$$$$$$$$$$$$ '~~~~~~~ '~~~~~~~~     ~~~~  !!!!!!!!!!
+  !!!!!!!!> $$$$$$$$$$$$$$$$$$$$$$$$b   ~~~    '~~~~~~~     '~~~ '!!!!!!!!!!
+  !!!!!!!!> $$$$$$$$$$$$$$$$$$$$$$$$$$$cuuue$$N.   ~        ~~~  !!!!!!!!!!!
+  !!!!!!!!! **$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ne  ~~~~~~~~  `!!!!!!!!!!!
+  !!!!!!!!!  J$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$N  ~~~~~  zL '!!!!!!!!!!
+  !!!!!!!!  d$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$c     z$$$c `!!!!!!!!!
+  !!!!!!!> <$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 4!!!!!!!!
+  !!!!!!!  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  !!!!!!!!
+  !!!!!!! <$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*"   ....:!!
+  !!!!!!~ 9$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$e@$N '!!!!!!!
+  !!!!!!  9$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  !!!!!!!
+  !!!!!!  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$""$$$$$$$$$$$~ ~~4!!!!
+  !!!!!!  9$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$    $$$$$$$Lue  :::!!!!
+  !!!!!!> 9$$$$$$$$$$$$" '$$$$$$$$$$$$$$$$$$$$$$$$$$$    $$$$$$$$$$  !!!!!!!
+  !!!!!!! '$$*$$$$$$$$E   '$$$$$$$$$$$$$$$$$$$$$$$$$$$u.@$$$$$$$$$E '!!!!!!!
+  !!!!~`   .eeW$$$$$$$$   :$$$$$$$$$$$$$***$$$$$$$$$$$$$$$$$$$$u.    `~!!!!!
+  !!> .:!h '$$$$$$$$$$$$ed$$$$$$$$$$$$Fz$$b $$$$$$$$$$$$$$$$$$$$$F '!h.  !!!
+  !!!!!!!!L '$**$$$$$$$$$$$$$$$$$$$$$$ *$$$ $$$$$$$$$$$$$$$$$$$$F  !!!!!!!!!
+  !!!!!!!!!   d$$$$$$$$$$$$$$$$$$$$$$$$buud$$$$$$$$$$$$$$$$$$$$"  !!!!!!!!!!
+  !!!!!!! .<!  #$$*"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*  :!!!!!!!!!!!
+  !!!!!!!!!!!!:   d$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$#  :!!!!!!!!!!!!!
+  !!!!!!!!!!!~  :  '#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*"    !!!!!!!!!!!!!!!
+  !!!!!!!!!!  !!!!!:   ^"**$$$$$$$$$$$$$$$$$$$$**#"     .:<!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!:...                      .::!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
