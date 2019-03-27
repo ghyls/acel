@@ -43,7 +43,7 @@ void terminator()
   std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, \
                               kAzure-8, kOrange+1, kRed+1};
 
-  MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
+  MCsamples = {/*"qcd", */"wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
   static Plotter * plot;
 
   int RANKS[3] = {0, 0, 0};

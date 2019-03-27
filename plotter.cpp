@@ -192,7 +192,7 @@ void Plotter::PrintXSecData()
   //std::cout << totalSignal << std::endl;
   //http://pdglive.lbl.gov/Particle.action?node=Q007&init=0
 
-  float sigmaTeo = 174.5; //http://inspirehep.net/record/1391592?ln=en
+  float sigmaTeo = 177.3;
 
   std::cout << "\n\n================================" << std::endl;
 
@@ -211,11 +211,13 @@ void Plotter::PrintXSecData()
 
   //float acep = 2858. / 3500.;
   float acep = integralsAcep[0];///integralsAcep[1];
-  float BR = (0.134 + 0.71 * 0.1739) * 0.665;
+  float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
 
+  //std::cout << totalSignal/totalTTbar << std::endl;
 
   float eff = triggEff * muonEff * bTagEff;
-  //acep = totalSignal / (eff * lumi * BR * sigmaTeo);
+  //acep = totalTTbar / (eff * lumi * BR * sigmaTeo);
+  std::cout << totalTTbar / (eff * lumi * BR * sigmaTeo) << std::endl;;
   //std::cout << acep << std::endl;
   float sigma = totalSignal / (lumi * acep * eff * BR);
   std::cout << "Cross Section: " << sigma << std::endl;        

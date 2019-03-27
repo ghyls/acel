@@ -21,11 +21,11 @@
 #define JET_MAX_PT 999
 #define DR_MAX_JETS 0.4
 #define MUON_MIN_PT 26.7 // 26.7
-#define BTAG_LIM 1.5
+#define BTAG_LIM 1.6
 #define MIN_TRUE_JETS 2
-#define MIN_B_JETS 1
-
-
+#define MIN_B_JETS 1        // bJets >= MIN_B_JETS
+#define JET_MAX_ETA 2.4 //2.4
+#define MUON_MAX_ETA 2.4 //2.4
 
 Selector::Selector(std::string _filePath, std::string _fileName)
 {
@@ -317,13 +317,14 @@ void Selector::Loop()
 
 
     // jet Pting >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    bool jetHasGoodPt[20]; std::fill_n(jetHasGoodPt, 20, false);
+    bool jetHasGoodPtEta[20]; std::fill_n(jetHasGoodPtEta, 20, false);
     for (int j = 0; j < NJet; j++)
     {
       jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-      if (jet.Pt() > JET_MIN_PT)
+      
+      if (jet.Pt() > JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
       {
-        jetHasGoodPt[j] = true;
+        jetHasGoodPtEta[j] = true;
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -334,7 +335,7 @@ void Selector::Loop()
     bool jetIsGood[20]; std::fill_n(jetIsGood, 20, false);
     for (int j = 0; j < NJet; j++)
     {
-      if (Jet_ID[j] && jetHasGoodPt[j]) {NTrueJets++; jetIsGood[j] = true;}
+      if (Jet_ID[j] && jetHasGoodPtEta[j]) {NTrueJets++; jetIsGood[j] = true;}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -401,22 +402,26 @@ void Selector::Loop()
       TLorentzVector bLeptGEN;
 
       bHadrGEN.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, \
-                              MChadronicBottom_pz, 794519024375104);
+                              MChadronicBottom_pz, 3333333);
       bLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
-                              MCleptonicBottom_pz, 794519024375104);
+                              MCleptonicBottom_pz, 3333333);
 
-      if (bHadrGEN.Pt() > 0 && bLeptGEN.Pt() > 0) // si hay dos b-Jets
+      if (bHadrGEN.Pt() >JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA && 
+          bLeptGEN.Pt() >JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA) 
+          // si hay dos b-Jets
         {
         if (bHadrGEN.Pt() < 1) {std::cout << "asdasdsadasdsad" << std::endl;}
         if (bLeptGEN.Pt() < 1) {std::cout << "popoipoipipoipo" << std::endl;}
 
         //if (bHadrGEN.Pt() > JET_MIN_PT && bLeptGEN.Pt() > JET_MIN_PT)
-        {totalGenB += 2.;}
-
+        totalGenB += 2;
         // identificamos jets en reco
         float DRHadr, auxDRHadr = 999;
         float DRLept, auxDRLept = 999;
 
+        
+        if (bJets >= MIN_B_JETS)
+        {
         for (int j = 0; j < NJet; j++)
         {
           GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
@@ -424,7 +429,8 @@ void Selector::Loop()
           if (jetIsB[j] && jetIsGood[j])
           {
             jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-
+            
+            
             // macheamos reco con gen
             DRHadr = DR(bHadrGEN, jet);
             DRLept = DR(bLeptGEN, jet);
@@ -447,6 +453,7 @@ void Selector::Loop()
 
             }            
           }
+        }
         }
 
         // jets reconocidos por evento (máximo 2)
@@ -489,8 +496,11 @@ void Selector::Loop()
     {
       muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
 
-      if (muon.Pt() > MUON_MIN_PT)
+
+      if (muon.Pt() > MUON_MIN_PT && abs(muon.Eta()) <= MUON_MAX_ETA)
       {
+        //std::cout << muon.Eta() << std::endl;
+        
         jet.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py,
                           MChadronicWDecayQuark_pz, 0);
         jet2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, 
@@ -499,13 +509,20 @@ void Selector::Loop()
                       MCleptonicBottom_pz, 0);
         b2.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, 
                       MChadronicBottom_pz, 0);
+
         int GoodMCJets = 0;
         int GoodMCbJets = 0;
 
-        if (jet.Pt() > JET_MIN_PT) {GoodMCJets ++;}
-        if (jet2.Pt() > JET_MIN_PT) {GoodMCJets ++;} 
-        if (b.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
-        if (b2.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
+        if (jet.Pt() > JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;}
+        if (jet2.Pt() > JET_MIN_PT && abs(jet2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;} 
+        if (b.Pt() > JET_MIN_PT && abs(b.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
+        if (b2.Pt() > JET_MIN_PT && abs(b2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
+
+
+        //if (jet.Pt() > JET_MIN_PT) {GoodMCJets ++;}
+        //if (jet2.Pt() > JET_MIN_PT) {GoodMCJets ++;} 
+        //if (b.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
+        //if (b2.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
 
         tmp++;
         //if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
@@ -601,7 +618,7 @@ void Selector::Loop()
   }
 
 
-  float BR = (0.134 + 0.71 * 0.1739) * 0.665;
+  float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
   acep = ttbarReco/(ttbarGen * BR);
   //std::cout << "god :: "<< acep << std::endl;
   //std::cout << "  TMP :: "<< tmp << std::endl;
