@@ -19,11 +19,11 @@
 
 #define JET_MIN_PT 30 // 30
 #define JET_MAX_PT 999
-#define DR_MAX_JETS 0.4
+#define DR_MAX_JETS 0.3
 #define MUON_MIN_PT 26.7 // 26.7
 #define BTAG_LIM 1.6
-#define MIN_TRUE_JETS 2
-#define MIN_B_JETS 1        // bJets >= MIN_B_JETS
+#define MIN_TRUE_JETS 4
+#define MIN_B_JETS 2        // bJets >= MIN_B_JETS
 #define JET_MAX_ETA 2.4 //2.4
 #define MUON_MAX_ETA 2.4 //2.4
 
@@ -322,7 +322,7 @@ void Selector::Loop()
     {
       jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
       
-      if (jet.Pt() > JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
+      if (jet.Pt() >= JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
       {
         jetHasGoodPtEta[j] = true;
       }
@@ -345,7 +345,7 @@ void Selector::Loop()
     bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
     for (int j = 0; j < NJet; j++)
     {
-      if (Jet_btag[j] > BTAG_LIM && jetIsGood[j])
+      if (Jet_btag[j] > BTAG_LIM)
       { // si es bTag
         bJets ++;
         jetIsB[j] = true;
@@ -385,7 +385,7 @@ void Selector::Loop()
     // Z mass >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (NIsoMuon > 1 && triggerIsoMu24)
     {
-      if(leadMuon.Pt() > MUON_MIN_PT)
+      if(leadMuon.Pt() >= MUON_MIN_PT)
       {
         GetHisto("MuMuMass")->Fill((leadMuon + muon2).M(), EventWeight);
       }
@@ -406,6 +406,7 @@ void Selector::Loop()
       bLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
                               MCleptonicBottom_pz, 3333333);
 
+        /*
       if (bHadrGEN.Pt() >JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA && 
           bLeptGEN.Pt() >JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA) 
           // si hay dos b-Jets
@@ -413,23 +414,18 @@ void Selector::Loop()
         if (bHadrGEN.Pt() < 1) {std::cout << "asdasdsadasdsad" << std::endl;}
         if (bLeptGEN.Pt() < 1) {std::cout << "popoipoipipoipo" << std::endl;}
 
-        //if (bHadrGEN.Pt() > JET_MIN_PT && bLeptGEN.Pt() > JET_MIN_PT)
         totalGenB += 2;
         // identificamos jets en reco
         float DRHadr, auxDRHadr = 999;
         float DRLept, auxDRLept = 999;
 
-        
-        if (bJets >= MIN_B_JETS)
-        {
         for (int j = 0; j < NJet; j++)
         {
           GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
 
-          if (jetIsB[j] && jetIsGood[j])
+          if (jetIsGood[j])
           {
             jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-            
             
             // macheamos reco con gen
             DRHadr = DR(bHadrGEN, jet);
@@ -454,7 +450,7 @@ void Selector::Loop()
             }            
           }
         }
-        }
+
 
         // jets reconocidos por evento (máximo 2)
         int NRecoJets = 0;
@@ -464,6 +460,72 @@ void Selector::Loop()
         GetHisto("JetMatchSuccess")->Fill(bJets - NRecoJets, EventWeight);
         GetHisto("JetMatchedRECO")->Fill(NRecoJets, EventWeight);
         GetHisto("JetBTaggedRECO")->Fill(bJets, EventWeight);
+      }
+        */
+
+      if (bHadrGEN.Pt() >= JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA)
+      { // si encuentras un Jet hadronico en MC...
+        float DRHadr, auxDRHadr = 999;
+
+        for (int j = 0; j < NJet; j++)
+        { // ...mira a ver si lo matcheas con alguno en reco...
+          GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
+
+          if (jetIsGood[j])
+          { // ...pero solo si pasa todos los cortes!
+
+            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+            DRHadr = DR(bHadrGEN, jet);
+
+            if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr){
+              if (auxDRHadr == 999) // if is the first match
+              {
+                //bIdentAndMatched ++;
+                auxDRHadr = DRHadr;
+              }
+              else std::cout << "Hi Hadr" << std::endl;
+            }            
+          }
+        }
+        totalGenB ++;
+        if (auxDRHadr < 999)
+        {
+          bIdentAndMatched ++;
+        }
+      }
+
+
+      if (bLeptGEN.Pt() >= JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA)
+      { // si encuentras un Jet hadronico en MC...
+        float DRLept, auxDRLept = 999;
+
+        for (int j = 0; j < NJet; j++)
+        { // ...mira a ver si lo matcheas con alguno en reco...
+          GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
+
+          if (jetIsGood[j])
+          { // ...pero solo si pasa todos los cortes!
+
+            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+            DRLept = DR(bLeptGEN, jet);
+
+            if(DRLept < DR_MAX_JETS && DRLept < auxDRLept){
+              if (auxDRLept == 999) // if is the first match
+              {
+                //bIdentAndMatched ++;
+                auxDRLept = DRLept;
+              }
+              else std::cout << "Hi Lept" << std::endl;
+            }            
+          }
+        }
+        totalGenB ++;
+        if (auxDRLept < 999)
+        {
+          bIdentAndMatched ++;
+        }
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -497,7 +559,7 @@ void Selector::Loop()
       muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
 
 
-      if (muon.Pt() > MUON_MIN_PT && abs(muon.Eta()) <= MUON_MAX_ETA)
+      if (muon.Pt() >= MUON_MIN_PT && abs(muon.Eta()) <= MUON_MAX_ETA)
       {
         //std::cout << muon.Eta() << std::endl;
         
@@ -513,16 +575,10 @@ void Selector::Loop()
         int GoodMCJets = 0;
         int GoodMCbJets = 0;
 
-        if (jet.Pt() > JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;}
-        if (jet2.Pt() > JET_MIN_PT && abs(jet2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;} 
-        if (b.Pt() > JET_MIN_PT && abs(b.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
-        if (b2.Pt() > JET_MIN_PT && abs(b2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
-
-
-        //if (jet.Pt() > JET_MIN_PT) {GoodMCJets ++;}
-        //if (jet2.Pt() > JET_MIN_PT) {GoodMCJets ++;} 
-        //if (b.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
-        //if (b2.Pt() > JET_MIN_PT) {GoodMCJets ++; GoodMCbJets ++;}
+        if (jet.Pt() >= JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;}
+        if (jet2.Pt() >= JET_MIN_PT && abs(jet2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;} 
+        if (b.Pt() >= JET_MIN_PT && abs(b.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
+        if (b2.Pt() >= JET_MIN_PT && abs(b2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
 
         tmp++;
         //if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
@@ -548,7 +604,7 @@ void Selector::Loop()
 
     if (triggerIsoMu24) 
     {
-      if (leadMuon.Pt() > MUON_MIN_PT)
+      if (leadMuon.Pt() >= MUON_MIN_PT)
       {
         // compute TMass from Data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         if (NTrueJets >= 4 && bJets >= 2) 
@@ -606,7 +662,7 @@ void Selector::Loop()
           {
             jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
             
-            if (abs(jet.Pt()) > JET_MIN_PT && jet.Pt() < JET_MAX_PT)
+            if (abs(jet.Pt()) >= JET_MIN_PT && jet.Pt() <= JET_MAX_PT)
               GetHisto("BJet_Pt")->Fill(jet.Pt(), EventWeight); 
           }
 
