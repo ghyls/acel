@@ -48,7 +48,6 @@ void terminator()
 
   int RANKS[3] = {0, 0, 0};
 
-
     plot = new Plotter(MCsamples, pathToFiles, "data");
     std::vector<TString> histos;
     //plot.SetColors(colors);
@@ -58,12 +57,12 @@ void terminator()
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->SetTitles("W Mass", "M_W", "Events", "leptWMass");
       histos = {"MCMassHadrW", "MCMassLeptW"};
-      plot->Stack("", "ttbar", false, histos, false);
+      plot->Stack("", "ttbar", false, "", histos, false);
 
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->SetTitles("T Mass", "M_T", "Events", "leptTMass");
       histos = {"MCMassHadrT", "MCMassLeptT"};
-      plot->Stack("", "ttbar", false, histos, false);
+      plot->Stack("", "ttbar", false, "", histos, false);
 
       //plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       //plot->SetTitles("bTag eff", "uff", "Events", "bTagEff");
@@ -72,28 +71,32 @@ void terminator()
 
       plot->SetTitles("Muon Pt", "muonPt", "Events", "muonPt");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->Stack("MuonPt", "", true);
+      plot->Stack("MuonPt", "", true, "");
 
       plot->SetTitles("tageados - matcheados", "jet is B", "Events", "bMatching");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       histos = {"JetMatchSuccess"};
-      plot->Stack("", "ttbar", false, histos, false);
+      plot->Stack("", "ttbar", false, "", histos, false);
 
       plot->SetTitles("MuMuMass", "MMMass", "Events", "muMuMass");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->Stack("MuMuMass", "", true, {}, true);
+      plot->Stack("MuMuMass", "", true, "", {}, true);
 
       plot->SetTitles("Me gusta el miso", "MIso", "Events", "muon_Iso");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->Stack("Muon_Iso", "", true, {}, false, 20000);
+      plot->Stack("Muon_Iso", "", true, "", {}, false, 20000);
 
       plot->SetTitles("Hadr W mass", "HadrW", "Events", "dataHadrWMass");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->Stack("MassHadrW", "", true);
+      plot->Stack("MassHadrW", "", true, "gauss");
 
       plot->SetTitles("lep W mass", "lepW", "Events", "datalepWMass");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->Stack("MassLeptW", "", true);
+      plot->Stack("MassLeptW", "", true, "gauss");
+
+      plot->SetTitles("hadr T mass", "hadrT", "Events", "dataHadrTMass");
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->Stack("MassHadrT", "", true, "gauss");
     }
 
 
@@ -133,7 +136,7 @@ void terminator()
 
       plot->SetTitles("Jet btag","Jet_btag", "Events", "jet_btag");
       plot->SetLegendPos(0.7, 0.8, 0.88, 0.88);
-      plot->Stack("Jet_btag", "", false, {}, false, 200);
+      plot->Stack("Jet_btag", "", false, "", {}, false, 200);
 
       //plot->PrintEvents("Jet_btag");
       delete plot;
