@@ -88,7 +88,13 @@ eficiencias
 hacer un histograma en el pt del jet par ael numerador de la eficiencia y otro
 para el denominador.
 
-Esto es la eficiencia de MC. La eficiencia en datos es 0.9 la eficiencia en MC
+Lo que he calculado es la eficiencia de MC. La eficiencia en datos es 0.9 la
+eficiencia en MC
+
+Implementa lo de arriba y propaga todos los errores. Imprime la tabla con todas
+las cosas, y ya te preocuparás luego de la masa del top y del resto de movidas.
+
+Suerte chaval
 
 
 
