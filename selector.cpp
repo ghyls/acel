@@ -19,11 +19,11 @@
 
 #define JET_MIN_PT 30 // 30
 #define JET_MAX_PT 999
-#define DR_MAX_JETS 0.3
+#define DR_MAX_JETS 0.4
 #define MUON_MIN_PT 26.7 // 26.7
 #define BTAG_LIM 1.6
-#define MIN_TRUE_JETS 4
-#define MIN_B_JETS 2        // bJets >= MIN_B_JETS
+#define MIN_TRUE_JETS 2
+#define MIN_B_JETS 1        // bJets >= MIN_B_JETS
 #define JET_MAX_ETA 2.4 //2.4
 #define MUON_MAX_ETA 2.4 //2.4
 
@@ -111,7 +111,8 @@ void Selector::CreateHistograms(TString prefix)
   TH1F* h17 = new TH1F(prefix + TString("_MCMassLeptT"), "", 100, 171.8, 173);
   TH1F* h18 = new TH1F(prefix + TString("_JetMatchSuccess"), "", 12, -1, 3);
   TH1F* h19 = new TH1F(prefix + TString("_MassHadrW"), "", 12, 30, 120);
-  TH1F* h20 = new TH1F(prefix + TString("_MassLeptW"), "", 12, 60, 100);
+  TH1F* h20 = new TH1F(prefix + TString("_MassLeptW"), "", 12, 60, 200);
+  TH1F* h21 = new TH1F(prefix + TString("_MassHadrT"), "", 10, 60, 300);
 
 
   histograms.push_back(h1); 
@@ -134,6 +135,7 @@ void Selector::CreateHistograms(TString prefix)
   histograms.push_back(h18); 
   histograms.push_back(h19); 
   histograms.push_back(h20); 
+  histograms.push_back(h21); 
 }
 
 float Selector::Module(float x, float y, float z)
@@ -407,50 +409,6 @@ void Selector::Loop()
                               MCleptonicBottom_pz, 3333333);
 
         /*
-      if (bHadrGEN.Pt() >JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA && 
-          bLeptGEN.Pt() >JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA) 
-          // si hay dos b-Jets
-        {
-        if (bHadrGEN.Pt() < 1) {std::cout << "asdasdsadasdsad" << std::endl;}
-        if (bLeptGEN.Pt() < 1) {std::cout << "popoipoipipoipo" << std::endl;}
-
-        totalGenB += 2;
-        // identificamos jets en reco
-        float DRHadr, auxDRHadr = 999;
-        float DRLept, auxDRLept = 999;
-
-        for (int j = 0; j < NJet; j++)
-        {
-          GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
-
-          if (jetIsGood[j])
-          {
-            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-            
-            // macheamos reco con gen
-            DRHadr = DR(bHadrGEN, jet);
-            DRLept = DR(bLeptGEN, jet);
-
-            if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr && DRHadr < DRLept){
-              if (auxDRHadr == 999) // if is the first match
-              {
-                bIdentAndMatched ++;
-                auxDRHadr = DRHadr;
-              }
-              else std::cout << "WTFFFFF Hadr" << std::endl;
-            }
-            if(DRLept < DR_MAX_JETS && DRLept < auxDRLept && DRLept < DRHadr){
-              if (auxDRLept == 999) // if is the first match
-              {
-                bIdentAndMatched ++;
-                auxDRLept = DRLept;
-              }
-              else std::cout << "WTFFFFF Lept" << std::endl;
-
-            }            
-          }
-        }
-
 
         // jets reconocidos por evento (máximo 2)
         int NRecoJets = 0;
@@ -460,7 +418,7 @@ void Selector::Loop()
         GetHisto("JetMatchSuccess")->Fill(bJets - NRecoJets, EventWeight);
         GetHisto("JetMatchedRECO")->Fill(NRecoJets, EventWeight);
         GetHisto("JetBTaggedRECO")->Fill(bJets, EventWeight);
-      }
+        }
         */
 
       if (bHadrGEN.Pt() >= JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA)
@@ -484,7 +442,7 @@ void Selector::Loop()
                 //bIdentAndMatched ++;
                 auxDRHadr = DRHadr;
               }
-              else std::cout << "Hi Hadr" << std::endl;
+              //else std::cout << "Hi Hadr" << std::endl;
             }            
           }
         }
@@ -517,7 +475,7 @@ void Selector::Loop()
                 //bIdentAndMatched ++;
                 auxDRLept = DRLept;
               }
-              else std::cout << "Hi Lept" << std::endl;
+              //else std::cout << "Hi Lept" << std::endl;
             }            
           }
         }
@@ -607,11 +565,12 @@ void Selector::Loop()
       if (leadMuon.Pt() >= MUON_MIN_PT)
       {
         // compute TMass from Data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        if (NTrueJets >= 4 && bJets >= 2) 
+        if (NTrueJets >= 2 && bJets >= 1) 
         {
           float Mjj = 0; float auxMjj = 0;
-
-          for (int j = 0; j < NJet; j++) // hadronico
+          TLorentzVector hadrJet1, hadrJet2;
+          // Hadronic branch ···················································
+          for (int j = 0; j < NJet; j++) 
           {
             for (int k = 0; k < NJet; k++)
             {
@@ -624,20 +583,55 @@ void Selector::Loop()
                 if ((abs(auxMjj -81) < abs(Mjj - 81)) && abs(auxMjj - 81) < 30)
                 {
                   Mjj = auxMjj;
+                  hadrJet1 = jet;
+                  hadrJet2 = jet2;
                 }
               }
             }
           }
           GetHisto("MassHadrW")->Fill(Mjj, EventWeight);
 
+          // matching with b-Jets
+          float M3j = 999;
+          float auxM3j;
+          float TopMassTeo = 173;
 
+          for (int j = 0; j < NJet; j++)
+          {
+            if (jetIsB[j] && jetIsGood[j])
+
+            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+          
+            float auxM3j = (jet + hadrJet1 + hadrJet2).M();
+
+            if(abs(auxM3j - TopMassTeo) < abs(M3j - TopMassTeo) &&
+                abs(auxM3j - TopMassTeo) < 80)
+            {
+              M3j = auxM3j;
+            }
+
+
+          }
+
+          if (M3j != 999) // our Top!
+          {
+            //std::cout << M3j << std::endl;
+            GetHisto("MassHadrT")->Fill(M3j, EventWeight);
+          }
+
+
+          // ···································································
+          // Leptonic branch ···················································
           TLorentzVector nuAux;
           nuAux.SetPx(MET_px); nuAux.SetPy(MET_py);
           nuAux.SetE(TMath::Power(MET_px*MET_px + MET_py*MET_py, 0.5));
          
           float MLeptW = (nuAux + leadMuon).Mt();
           if (abs(auxMjj - 81) < 30)
+
           GetHisto("MassLeptW")->Fill(MLeptW, EventWeight);
+          // ···································································        
         }
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -673,18 +667,13 @@ void Selector::Loop()
     // <<<<<<<<<<<<<<<<<<<<<<<<>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   }
 
-
   float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
   acep = ttbarReco/(ttbarGen * BR);
   //std::cout << "god :: "<< acep << std::endl;
   //std::cout << "  TMP :: "<< tmp << std::endl;
   if (process=="ttbar")
   {
-    //std::cout << "bEff " << bIdentAndMatched << std::endl;
-    //std::cout << "bEff " << totalGenB << std::endl;
-
     bTagEff = bIdentAndMatched/totalGenB;
-    //std::cout << bTagEff << std::endl;
   }
 }
 
