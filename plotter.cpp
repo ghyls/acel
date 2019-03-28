@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 #include "TH1.h"
+#include "TF1.h"
+#include "TFitResult.h"
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "THStack.h"
@@ -493,11 +495,21 @@ TString returnFuckingName(S _name, TString process)
 
 //template <typename T>
 
+void Plotter::PrintGaussianFit(TH1F * histo)
+{
+  TF1 * fit = new TF1("f1", "gaus");
+  
+  //TFitResultPtr fitData = histo->Fit(fit, "N");
+  
+  TFitResultPtr fitData = histo->Fit(fit, "N");
+  Double_t p1 = fit->GetParameter(1);
+  Double_t e1 = fit->GetParError(1);
+  std::cout << p1 << " pm " << e1 << std::endl;
+}
 
 
-
-void Plotter::Stack(TString name, TString process, bool drawRatios, std::vector<TString> histoNames, \
-                    bool doLogY, Float_t maxY)
+void Plotter::Stack(TString name, TString process, bool drawRatios, 
+  TString options, std::vector<TString> histoNames, bool doLogY, Float_t maxY)
 {
   
   float minPad1;
@@ -595,6 +607,11 @@ void Plotter::Stack(TString name, TString process, bool drawRatios, std::vector<
     DrawOverflowBin(hdata);
     hdata->Draw("pesame");
 
+    if (options.Contains("gauss"))
+    {
+      PrintGaussianFit(hdata);
+    }
+
     Float_t maxData = hdata->GetMaximum();
     if (max < maxData) {max = maxData;}
 
@@ -605,8 +622,6 @@ void Plotter::Stack(TString name, TString process, bool drawRatios, std::vector<
   
   if (drawRatios && process == "")
   {
-
-
     c->cd();          // Go back to the main canvas before defining pad2
     TPad *pad2 = new TPad("pad2", "pad2", 0, 0.05, 1, 0.3);
     pad2->SetTopMargin(0.05);

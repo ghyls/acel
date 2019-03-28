@@ -44,7 +44,8 @@ class Plotter
         int GetEvents(TString name);
         void PrintEvents(TString name);
         //template <typename T>
-        void Stack(TString _name, TString process, bool drawRatios, std::vector<TString> hisoNames = {},
+        void Stack(TString _name, TString process, bool drawRatios, 
+                    TString options, std::vector<TString> hisoNames = {},
                     bool doLogY = 0, Float_t maxY = -1);
         void plotWithRatio(TString process, TString nameH1, TString nameH2, \
         TString rLabel, float rMin, float rMax, bool doLogY = 0, float max = 999);
@@ -53,6 +54,7 @@ class Plotter
         std::vector<double> GetBTagEff();
         std::vector<double> GetAcceptance();
         void PrintXSecData();
+        void PrintGaussianFit(TH1F *histo);
 
     private:
 
