@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+//#include <mpi.h>
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TLegend.h"
@@ -18,16 +19,16 @@
 void terminator()
 {
 
-  MPI_Comm comm;
-  MPI_Status status;
-  int size, rank;
+  //MPI_Comm comm;
+  //MPI_Status status;
+  int size, rank = 0;
   
-  comm = MPI_COMM_WORLD;
+  //comm = MPI_COMM_WORLD;
   
-  MPI_Init(NULL, NULL);
+  //MPI_Init(NULL, NULL);
   
-  MPI_Comm_size(comm, &size);
-  MPI_Comm_rank(comm, &rank);
+  //MPI_Comm_size(comm, &size);
+  //MPI_Comm_rank(comm, &rank);
   
   std::cout << "Hello from rank " << rank << '!' << std::endl;
   if (rank==0) {
@@ -168,7 +169,7 @@ void terminator()
 //    delete plot;
 //    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //    }
-    MPI_Finalize();
+    //MPI_Finalize();
 
 }
 

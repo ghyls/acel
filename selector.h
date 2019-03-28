@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <mpi.h>
+
 
 #include "TH1.h"
 #include "TLorentzVector.h"
@@ -21,6 +21,8 @@ class Selector
     float bTagEff = 0;
     float acep = 0;
 
+    float ttbarGen;
+    float ttbarReco;
 
     Selector();
     ~Selector();       

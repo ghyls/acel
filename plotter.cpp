@@ -201,17 +201,13 @@ void Plotter::PrintXSecData()
   std::vector<double> integralsAcep = GetAcceptance();
 
   float bTagEff = integralsBTag[0]/integralsBTag[1];
-  bTagEff = integralsBTag[0];
-  //bTagEff = 0.8;
-
-
   float triggEff = integralsTEff[0]/integralsTEff[1];
   float muonEff = 0.99;   // pm 0.01
   float lumi = 50;        // pb, pm 10%
 
   //float acep = 2858. / 3500.;
-  float acep = integralsAcep[0];///integralsAcep[1];
-  float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
+  
+  float acep = integralsAcep[0]/(integralsAcep[1]*BR);
 
   //std::cout << totalSignal/totalTTbar << std::endl;
 
@@ -226,12 +222,12 @@ void Plotter::PrintXSecData()
 
   std::ofstream f;
   f.open("./PyTools/xsec.dat");
-  f << "# Btag, Teff, Acep, [int[0], int[1]]" << std::endl;
   f << "# this is an auto-generated file. You better don't edit it \n\n";
+  f << "# Btag, Teff, Acep; [num, denom]\n" << std::endl;
 
   f << integralsBTag[0] << ' ' << integralsBTag[1] << std::endl;
   f << integralsTEff[0] << ' ' << integralsTEff[1] << std::endl;
-  f << acep << ' ' << integralsAcep[1] << std::endl;
+  f << integralsAcep[0] << ' ' << integralsAcep[1] << std::endl;
   f << totalData << ' ' << totalMC - totalTTbar << std::endl;
   f.close();
 }
@@ -289,22 +285,25 @@ std::vector<double> Plotter::GetAcceptance()
   TH1F* h1;
   TH1F* h2;
   float acept;
+  float ttbarReco;
+  float ttbarGen;
   for (int i = 0; i < listOfSelectors.size(); i++)
   {
     if (listOfSelectors[i]->process == "ttbar")
     {
       h1 = listOfSelectors[i]->GetHisto("Acep_gen");
       h2 = listOfSelectors[i]->GetHisto("Acep_obs");
-      acept = listOfSelectors[i]->acep;
+      ttbarReco = listOfSelectors[i]->ttbarReco;
+      ttbarGen = listOfSelectors[i]->ttbarGen;
     }
   }
 
   //float acept = h2->Integral()/h1->Integral();
 
-  std::cout << "Aceptance: " << acept << std::endl;
+  std::cout << "Aceptance: " << ttbarReco/(ttbarGen*BR) << std::endl;
   
   //std::vector<double> integrals = {h1->Integral(), h2->Integral()};
-  std::vector<double> integrals = {acept, h2->Integral()};
+  std::vector<double> integrals = {ttbarReco, ttbarGen};
   return integrals;
 }
 
@@ -314,20 +313,22 @@ std::vector<double> Plotter::GetBTagEff()
   TH1F* h1;
   TH1F* h2;
   float eff;
+  float num;
+  float den;
   for (int i = 0; i < listOfSelectors.size(); i++)
   {
     if (listOfSelectors[i]->process == "ttbar")
     {
       h1 = listOfSelectors[i]->GetHisto("BJet_Pt");
       h2 = listOfSelectors[i]->GetHisto("Jets_GEN_Pt");
-      eff = listOfSelectors[i]->bTagEff;
+      num = listOfSelectors[i]->bIdentAndMatched;
+      den = listOfSelectors[i]->totalGenB;
     }
   }
-  float bTagEff = h1->Integral()/h2->Integral();
-  std::cout << "B tagging eff: " << eff << std::endl;  
+  std::cout << "B tagging eff: " << num/den << std::endl;  
 
   //std::vector<double> integrals = {h1->Integral(), h2->Integral()};
-  std::vector<double> integrals = {eff, h2->Integral()};
+  std::vector<double> integrals = {num, den};
   return integrals;
 }
 
