@@ -25,6 +25,7 @@ class Plotter
         TString ytitle = "";
         TString title = ""; 
         TString outName = "out"; 
+        float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
 
         Plotter();
         Plotter(std::vector<std::string> bkgs, std::string pathToFiles, 

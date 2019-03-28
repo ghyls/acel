@@ -1,6 +1,5 @@
 
 #include "selector.h"
-#include "functions.h"
 
 #include <iostream>
 #include <string>
@@ -251,8 +250,8 @@ void Selector::Loop()
 
 
   int tmp = 0;
-  float ttbarGen = 36941;
-  float ttbarReco = 0;
+  ttbarGen = 36941;
+  ttbarReco = 0;
 
   for (int i = 0; i < numEvents; i++)
   {
@@ -292,7 +291,6 @@ void Selector::Loop()
       b.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, 
                                                       MCleptonicBottom_pz, bE);
       GetHisto("MCMassLeptT")->Fill((muon + nu + b).M(), EventWeight);
-
 
       // hadronic W ............................................................
       Float_t q1P = Module(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py, 
@@ -631,7 +629,14 @@ void Selector::Loop()
           if (abs(auxMjj - 81) < 30)
 
           GetHisto("MassLeptW")->Fill(MLeptW, EventWeight);
+<<<<<<< HEAD
           // ···································································        
+=======
+
+
+
+
+>>>>>>> 7f04605bf1f018becf7cf7ca563ee8456b90c45a
         }
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
