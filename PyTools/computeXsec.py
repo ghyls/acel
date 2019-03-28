@@ -102,7 +102,7 @@ func = (N-B) / (lumi * acept * trigEff * muonEff * bTagEff * BRTTbarToMu)
 
 def computeError(func, variables):
 
-    sum = 0
+    sum = 0 
 
     for i in range(len(variables)):
         
