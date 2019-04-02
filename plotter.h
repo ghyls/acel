@@ -56,6 +56,7 @@ class Plotter
         std::vector<double> GetAcceptance();
         void PrintXSecData();
         void PrintGaussianFit(TH1F *histo);
+        void AddNormUnc(TString sampleName, float value);
 
     private:
 

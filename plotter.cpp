@@ -116,15 +116,12 @@ TH1F* Plotter::GetHisto(TString name) //name is the name of the histo
 
     for (int i = 0; i < numberOfSelectors; i++)
     {
-      for (int j = 0; j < numberOfHistos; j++)
+      if (name == listOfSelectors[i]->process)
       {
-        TString n = listOfSelectors[i]->histograms[j]->GetName(); //full name
-        std::cout << "name: " << n << std::endl;
-        if (!std::string(n).find(std::string(name))){continue;}
-        //si no encuentras el histo, sigue adelante
-        return listOfSelectors[i]->histograms[j];
+        return listOfSelectors[i]->GetHisto(name);
       }
     }
+    std::cout << "What a Terrible Failure. Kill yourself or I will do the job.";
     throw;
 }
 
@@ -508,6 +505,31 @@ void Plotter::PrintGaussianFit(TH1F * histo)
   std::cout << p1 << " pm " << e1 << std::endl;
 }
 
+void Plotter::AddNormUnc(TString sampleName, float perc)
+{
+  std::cout << " pm " << std::endl; 
+
+  TH1F * h = GetHisto(sampleName);
+
+  Int_t nbins = h->GetNbinsX(); Float_t binval = 0; Float_t errbin = 0; 
+  Float_t totalerror = 0;
+  
+  for(int bin = 1; bin <= nbins; bin++){  // Set bin error
+    totalerror = h->GetBinError(bin); 
+
+    binval = h->GetBinContent(bin);
+    float binError = binval * perc;
+
+    errbin = binval > 0 ? totalerror/binval : 0.0;
+    
+    
+    //hratioerr->SetBinContent(bin, 1);
+    //hratioerr->SetBinError(bin, errbin);
+  }
+
+
+}
+
 
 void Plotter::Stack(TString name, TString process, bool drawRatios, 
   TString options, std::vector<TString> histoNames, bool doLogY, Float_t maxY)
@@ -547,7 +569,57 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   leg.SetFillColor(10);
   
 
+  
+  // ESTOS TRES HISTOGRAMAS SE usarán para calcular la normalización y ponerla
+  // en el plot. Ojalá la esté calculando bien. Con el ratio plot ya te pelearás
+  // luego
 
+  TH1F* hSignal;
+  TH1F* hBkg;
+  TH1F* hTotal;
+  if (process == "" && data != "") //fill hBkg && hSignal
+  {
+    hdata = dataSelector->GetHisto(name); 
+    hSignal = (TH1F*)hdata->Clone("hSignal");
+    hBkg = (TH1F*)hdata->Clone("hBkg");
+
+    for (int j = 1; j < hdata->GetNbinsX() +1; j++) // empty histos
+    {
+      hSignal->SetBinContent(j, 0);
+      hBkg->SetBinContent(j, 0);
+    }
+
+    std::cout << "hey duudea" << std::endl;
+
+    for (unsigned int i = 0; i < listOfSelectors.size(); i++)
+    {
+      TH1F* h = listOfSelectors[i]->GetHisto(name);
+      if (listOfSelectors[i]->process != "ttbar")
+      {
+        for (int j = 1; j < h->GetNbinsX(); j++)
+        {
+          hBkg->SetBinContent(j, hBkg->GetBinContent(j) + h->GetBinContent(j));
+        }
+        hBkg->SetBinContent(h->GetNbinsX(),hBkg->GetBinContent(hBkg->GetNbinsX()) + h->GetBinContent(h->GetNbinsX()) + \
+                h->GetBinContent(h->GetNbinsX() + 1));
+      }
+      else
+      {
+        for (int j = 1; j < h->GetNbinsX(); j++)
+        {
+          hSignal->SetBinContent(j, hSignal->GetBinContent(j) + h->GetBinContent(j));
+        }
+        hSignal->SetBinContent(h->GetNbinsX(),hSignal->GetBinContent(hSignal->GetNbinsX()) + h->GetBinContent(h->GetNbinsX()) + \
+          h->GetBinContent(h->GetNbinsX() + 1));
+      }
+
+    }
+    hTotal = (TH1F*)hSignal->Clone("hTotal");
+    hTotal->Add(hBkg);
+  }
+  //Float_t overflow = h->GetBinContent(h->GetNbinsX()) + \
+  //                  h->GetBinContent(h->GetNbinsX() + 1);
+  //h->SetBinContent(h->GetNbinsX(), overflow);
 
   // if we want to stack different histos from the SAME process
   if (process == "")// if we want to stack the same histo for DIFERENT processes
@@ -590,8 +662,20 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     }
   }
 
+  //h->SetFillStyle(3444);
+  //h->SetBinError(0, 200);
+  //h->Draw("e2");
+
+
+
   pad1->cd();
+
+
   hs->Draw("hist");
+    std::cout << "he" << std::endl;
+  hTotal->SetFillStyle(3444);
+  hTotal->SetFillColor(kGray+2);
+  hTotal->Draw("same,e2");
   if (title  != "") {hs->SetTitle(title);}
   if (xtitle != "") {hs->GetXaxis()->SetTitle(xtitle);}
   if (ytitle != "") {hs->GetYaxis()->SetTitle(ytitle);}
@@ -636,6 +720,19 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     h3->SetLineColor(kBlack);
     h3->SetMinimum(0);
     h3->SetMaximum(2);
+    //h3->SetFillStyle(3444);
+    //h3->SetFillColor(kGray+2);
+    //for (int j = 0; j < h3->GetNbinsX(); j++)
+    //{
+    //  h3->SetBinError(j, j*100);
+    //}
+    
+    TH1F * hratio = (TH1F*)hdata->Clone("hratio");
+    for (int j = 1; j < hratio->GetNbinsX()+1; j++)
+    {
+      hratio->SetBinContent(j, 1);
+      hratio->SetBinError(j, j*0.1);
+    }
 
     h3->GetYaxis()->SetTitle("Data/MC");
     h3->GetYaxis()->SetTitleSize(20);
@@ -649,6 +746,10 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     h3->Divide(aux);       // ~ h1/h2
     h3->SetMarkerStyle(21);
     h3->Draw("ep");       // Draw the ratio plot
+
+    hratio->SetFillStyle(3444);
+    hratio->SetFillColor(kGray+2);
+    hratio->Draw("same,e2");
   }
   
   pad1->cd(); leg.Draw("same");
