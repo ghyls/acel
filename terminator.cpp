@@ -39,12 +39,14 @@ void terminator()
   std::string prefix = "hello";    
 
   std::vector<std::string> MCsamples;
+  std::vector<std::string> sampleType;
 
 
   std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, \
                               kAzure-8, kOrange+1, kRed+1};
 
   MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
+  sampleType= {"bkg", "bkg", "bkg", "bkg", "bkg"};
   static Plotter * plot;
 
   int RANKS[3] = {0, 0, 0};
@@ -55,11 +57,10 @@ void terminator()
 
     if(rank==RANKS[0])
     {
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+/*      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->SetTitles("W Mass", "M_W", "Events", "leptWMass");
       histos = {"MCMassHadrW", "MCMassLeptW"};
       plot->Stack("", "ttbar", false, "", histos, false);
-
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->SetTitles("T Mass", "M_T", "Events", "leptTMass");
       histos = {"MCMassHadrT", "MCMassLeptT"};
@@ -69,10 +70,11 @@ void terminator()
       //plot->SetTitles("bTag eff", "uff", "Events", "bTagEff");
       //histos = {"JetBTaggedRECO", "JetMatchedRECO"};
       //plot->Stack("", "ttbar", false, histos, false);
-
+*/
       plot->SetTitles("Muon Pt", "muonPt", "Events", "muonPt");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->Stack("MuonPt", "", true, "");
+/*
 
       plot->SetTitles("tageados - matcheados", "jet is B", "Events", "bMatching");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
@@ -98,11 +100,13 @@ void terminator()
       plot->SetTitles("hadr T mass", "hadrT", "Events", "dataHadrTMass");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->Stack("MassHadrT", "", true, "gauss");
+      */
     }
 
 
     if(rank==RANKS[1])
     {
+      
       plot->SetLegendPos(0.6, 0.75, 0.9, 0.9);
       plot->SetTitles("Eficiencia del trigger", "Ptmuon", "Events", "triggEff");
       plot->plotWithRatio("ttbar", "MuonPt_TriggOnly", "MuonPt_raw", "RATIO", 
@@ -132,6 +136,7 @@ void terminator()
 
     if(rank==RANKS[1])
     {
+      /*
     // Jet btag >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       plot = new Plotter({"wjets", "ttbar"}, pathToFiles, "");
 
@@ -141,6 +146,7 @@ void terminator()
 
       //plot->PrintEvents("Jet_btag");
       delete plot;
+      */
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 
