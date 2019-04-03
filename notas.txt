@@ -100,7 +100,8 @@ Suerte chaval
 
 
 
-
+pintar los cortes sobre el plot, la lumi, la secc eff, quitar el titulo, reunir
+los MC que son pequeños y quitar los que son 0
 
 
 
