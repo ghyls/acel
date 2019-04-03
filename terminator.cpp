@@ -57,7 +57,7 @@ void terminator()
 
     if(rank==RANKS[0])
     {
-/*      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->SetTitles("W Mass", "M_W", "Events", "leptWMass");
       histos = {"MCMassHadrW", "MCMassLeptW"};
       plot->Stack("", "ttbar", false, "", histos, false);
@@ -70,9 +70,9 @@ void terminator()
       //plot->SetTitles("bTag eff", "uff", "Events", "bTagEff");
       //histos = {"JetBTaggedRECO", "JetMatchedRECO"};
       //plot->Stack("", "ttbar", false, histos, false);
-*/
+
       plot->SetTitles("Muon Pt", "muonPt", "Events", "muonPt");
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetLegendPos(0.76, 0.6, 0.94, 0.88);
       plot->Stack("MuonPt", "", true, "");
 /*
 
