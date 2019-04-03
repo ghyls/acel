@@ -22,7 +22,7 @@ Plotter::Plotter(std::vector<std::string> bkgs, std::string _pathToFiles,
 {
 
   LegendTextSize  = 0.030;
-  fLegX1 = 0.70, fLegY1 = 0.55, fLegX2 = 0.92, fLegY2 = 0.92;
+  fLegX1 = 0.70, fLegY1 = 0.55, fLegX2 = 0.82, fLegY2 = 0.92;
 
 
   data = _data;
@@ -505,29 +505,27 @@ void Plotter::PrintGaussianFit(TH1F * histo)
   std::cout << p1 << " pm " << e1 << std::endl;
 }
 
-void Plotter::AddNormUnc(TString sampleName, float perc)
+void Plotter::AddNormUnc(TH1F * hTarget, TString name, TString proc, 
+                                                    float perc, float * hBinSys)
 {
-  std::cout << " pm " << std::endl; 
+    // hTarget is a histo with the same bining as hSource
+    TH1F* hSource;
+    for (unsigned int i = 0; i < listOfSelectors.size(); i++)
+    {    
+      if (listOfSelectors[i]->process == proc)
+        {hSource = listOfSelectors[i]->GetHisto(name);}
+    }
 
-  TH1F * h = GetHisto(sampleName);
-
-  Int_t nbins = h->GetNbinsX(); Float_t binval = 0; Float_t errbin = 0; 
-  Float_t totalerror = 0;
-  
-  for(int bin = 1; bin <= nbins; bin++){  // Set bin error
-    totalerror = h->GetBinError(bin); 
-
-    binval = h->GetBinContent(bin);
-    float binError = binval * perc;
-
-    errbin = binval > 0 ? totalerror/binval : 0.0;
-    
-    
-    //hratioerr->SetBinContent(bin, 1);
-    //hratioerr->SetBinError(bin, errbin);
-  }
-
-
+    for (int j = 1; j < hTarget->GetNbinsX() + 1; j++) 
+    { // all bins except the last
+      if (j == hTarget->GetNbinsX())
+      {
+        Float_t overflow = hSource->GetBinContent(hSource->GetNbinsX()) + \
+            hSource->GetBinContent(hSource->GetNbinsX() + 1);
+        hBinSys[j-1] += overflow * perc;
+      }
+      else hBinSys[j-1] += hSource->GetBinContent(j) * perc;
+    }
 }
 
 
@@ -545,7 +543,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     minPad1 = 0;
   }
 
-  TCanvas *c = new TCanvas("c", "canvas", 1000, 800);
+  TCanvas *c = new TCanvas("c", "canvas", 1000, 900);
 
 
   //name = returnFuckingName(_name, process);
@@ -559,14 +557,15 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   TPad *pad1 = new TPad("pad1", "pad1", 0, minPad1, 1, 1);
   if (doLogY) {pad1->SetLogy(1);}
 
-  pad1->SetBottomMargin(0.05); 
+  pad1->SetBottomMargin(0.01); 
+  pad1->SetRightMargin(0.06); 
   pad1->SetGridx();         // Vertical grid
   pad1->Draw();             // Draw the upper pad: pad1
   pad1->cd();               // pad1 becomes the current pad    
   TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); 
   leg.SetTextSize(LegendTextSize);
   leg.SetBorderSize(0);
-  leg.SetFillColor(10);
+  leg.SetFillStyle(0);
   
 
   
@@ -577,8 +576,12 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   TH1F* hSignal;
   TH1F* hBkg;
   TH1F* hTotal;
+  float hBinSys[listOfSelectors.size()];
+
+  std::fill_n(hBinSys, listOfSelectors.size(), 0);
   if (process == "" && data != "") //fill hBkg && hSignal
   {
+    
     hdata = dataSelector->GetHisto(name); 
     hSignal = (TH1F*)hdata->Clone("hSignal");
     hBkg = (TH1F*)hdata->Clone("hBkg");
@@ -589,10 +592,9 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
       hBkg->SetBinContent(j, 0);
     }
 
-    std::cout << "hey duudea" << std::endl;
 
     for (unsigned int i = 0; i < listOfSelectors.size(); i++)
-    {
+    { // Actually fill them
       TH1F* h = listOfSelectors[i]->GetHisto(name);
       if (listOfSelectors[i]->process != "ttbar")
       {
@@ -616,10 +618,23 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     }
     hTotal = (TH1F*)hSignal->Clone("hTotal");
     hTotal->Add(hBkg);
+
+    // Syst errors
+    AddNormUnc(hTotal, name, "qcd", 1, hBinSys);
+    AddNormUnc(hTotal, name, "wjets", 0.5, hBinSys);
+    AddNormUnc(hTotal, name, "ww", 0.5, hBinSys);
+    AddNormUnc(hTotal, name, "wz", 0.5, hBinSys);
+    AddNormUnc(hTotal, name, "zz", 0.5, hBinSys);
+    AddNormUnc(hTotal, name, "dy", 0.15, hBinSys);
+    AddNormUnc(hTotal, name, "single_top", 0.3, hBinSys);
+
+    for (int j = 1; j < hTotal->GetNbinsX() + 1; j++)
+    {
+      std::cout << hBinSys[j-1] << std::endl;
+      hTotal->SetBinError(j, hBinSys[j-1]);
+    }
   }
-  //Float_t overflow = h->GetBinContent(h->GetNbinsX()) + \
-  //                  h->GetBinContent(h->GetNbinsX() + 1);
-  //h->SetBinContent(h->GetNbinsX(), overflow);
+
 
   // if we want to stack different histos from the SAME process
   if (process == "")// if we want to stack the same histo for DIFERENT processes
@@ -634,6 +649,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
 
       h->SetFillColor(listOfColors[i]);
       h->SetLineColor(kBlack);
+      h->SetLineWidth(0);
       DrawOverflowBin(h);
       
       
@@ -654,6 +670,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
         TH1F* h = listOfSelectors[j]->GetHisto(TString(histoNames[i]));
         h->SetFillColor(listOfColors[i]);
         h->SetLineColor(kBlack);
+        h->SetLineWidth(0);
         DrawOverflowBin(h);
         hs->Add(h);
         leg.AddEntry(h, histoNames[i] + Form(": %1.0f", \
@@ -672,18 +689,29 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
 
 
   hs->Draw("hist");
-    std::cout << "he" << std::endl;
-  hTotal->SetFillStyle(3444);
-  hTotal->SetFillColor(kGray+2);
-  hTotal->Draw("same,e2");
+  if (process == "")
+  {
+    hTotal->SetFillStyle(3444);
+    hTotal->SetFillColor(kGray+2);
+    hTotal->Draw("same,e2");
+  }
+
   if (title  != "") {hs->SetTitle(title);}
-  if (xtitle != "") {hs->GetXaxis()->SetTitle(xtitle);}
   if (ytitle != "") {hs->GetYaxis()->SetTitle(ytitle);}
-  hs->GetYaxis()->SetTitleOffset(1.5);
 
   TH1 *aux = ((TH1*)(hs->GetStack()->Last()));
   Float_t max = aux->GetMaximum(); // why do I have to do this in 2 lines?
   
+  if (maxY == -1){hs->SetMaximum(max*1.1);}
+  else{hs->SetMaximum(maxY);}
+  hs->SetMinimum(0.0001);
+  hs->GetYaxis()->SetTitleOffset(1.5);
+  hs->GetYaxis()->SetTitleSize(25);
+  hs->GetYaxis()->SetTitleFont(43);
+  hs->GetYaxis()->SetTitleOffset(1.3);
+  hs->GetXaxis()->SetLabelSize(0);
+
+
   if (data != "" && process == "")
   {
     hdata = dataSelector->GetHisto(name); 
@@ -711,6 +739,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     TPad *pad2 = new TPad("pad2", "pad2", 0, 0.05, 1, 0.3);
     pad2->SetTopMargin(0.05);
     pad2->SetBottomMargin(0.2);
+    pad2->SetRightMargin(0.06); 
     pad2->SetGridx(); // vertical grid
     pad2->SetGridy(); // vertical grid
     pad2->Draw();
@@ -718,28 +747,33 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     
     TH1F *h3 = (TH1F*)hdata->Clone("h3");
     h3->SetLineColor(kBlack);
-    h3->SetMinimum(0);
-    h3->SetMaximum(2);
-    //h3->SetFillStyle(3444);
-    //h3->SetFillColor(kGray+2);
-    //for (int j = 0; j < h3->GetNbinsX(); j++)
-    //{
-    //  h3->SetBinError(j, j*100);
-    //}
+    h3->SetMinimum(0.51);
+    h3->SetMaximum(1.49);
+
     
     TH1F * hratio = (TH1F*)hdata->Clone("hratio");
     for (int j = 1; j < hratio->GetNbinsX()+1; j++)
     {
       hratio->SetBinContent(j, 1);
-      hratio->SetBinError(j, j*0.1);
+
+      float relErr = (hTotal->GetBinContent(j) + hTotal->GetBinError(j))/
+                    hTotal->GetBinContent(j) -1;
+      hratio->SetBinError(j, relErr);
     }
 
     h3->GetYaxis()->SetTitle("Data/MC");
-    h3->GetYaxis()->SetTitleSize(20);
+    h3->GetYaxis()->SetTitleSize(25);
     h3->GetYaxis()->SetTitleFont(43);
-    h3->GetYaxis()->SetTitleOffset(1.55);
+    h3->GetYaxis()->SetTitleOffset(1.3);
     h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
-    h3->GetYaxis()->SetLabelSize(15);
+    h3->GetYaxis()->SetLabelSize(18);
+    if (xtitle != "") {h3->GetXaxis()->SetTitle(xtitle);}
+    h3->GetXaxis()->SetTitleSize(25);
+    h3->GetXaxis()->SetTitleFont(43);
+    h3->GetXaxis()->SetTitleOffset(3);
+    h3->GetXaxis()->SetLabelFont(43); 
+    h3->GetXaxis()->SetLabelSize(20);
+
 
 
     h3->SetStats(0);      // No statistics on lower plot
@@ -747,14 +781,21 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     h3->SetMarkerStyle(21);
     h3->Draw("ep");       // Draw the ratio plot
 
+    TLine *l = new TLine(hratio->GetXaxis()->GetXmin(), 1.0,
+                         hratio->GetXaxis()->GetXmax(), 1.0);
+    l->SetLineColor(kBlack);
+    l->SetLineWidth(2);
+    l->Draw();
+
+
     hratio->SetFillStyle(3444);
     hratio->SetFillColor(kGray+2);
-    hratio->Draw("same,e2");
+    hratio->SetMarkerStyle(0);
+    hratio->Draw("e2, same");
   }
   
   pad1->cd(); leg.Draw("same");
-  if (maxY == -1){hs->SetMaximum(max*1.1);}
-  else{hs->SetMaximum(maxY);}
+
   c->Print(outName + ".png", "png");
 
   delete c, hs;
