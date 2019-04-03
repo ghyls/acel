@@ -557,7 +557,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   TPad *pad1 = new TPad("pad1", "pad1", 0, minPad1, 1, 1);
   if (doLogY) {pad1->SetLogy(1);}
 
-  pad1->SetBottomMargin(0.01); 
+  if (drawRatios) pad1->SetBottomMargin(0.01); 
   pad1->SetRightMargin(0.06); 
   pad1->SetGridx();         // Vertical grid
   pad1->Draw();             // Draw the upper pad: pad1
@@ -630,12 +630,11 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
       AddNormUnc(hTotal, name, "dy", 0.15, hBinSys);
       AddNormUnc(hTotal, name, "single_top", 0.3, hBinSys);
 
-
-    for (int j = 1; j < hTotal->GetNbinsX() + 1; j++)
-    {
-      //std::cout << hBinSys[j-1] << std::endl;
-      hTotal->SetBinError(j, hBinSys[j-1]);
-    }
+      for (int j = 1; j < hTotal->GetNbinsX() + 1; j++)
+      {
+        //std::cout << hBinSys[j-1] << std::endl;
+        hTotal->SetBinError(j, hBinSys[j-1]);
+      }
     }
   }
 
@@ -691,7 +690,12 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
 
   pad1->cd();
 
+  if (!drawRatios)
+  {
+    pad1->SetLeftMargin(0.12);
+    pad1->SetRightMargin(0.12);
 
+  }
   hs->Draw("hist");
   if (process == "")
   {
@@ -713,7 +717,17 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   hs->GetYaxis()->SetTitleSize(25);
   hs->GetYaxis()->SetTitleFont(43);
   hs->GetYaxis()->SetTitleOffset(1.3);
-  hs->GetXaxis()->SetLabelSize(0);
+  if (drawRatios) {hs->GetXaxis()->SetLabelSize(0);}
+  else
+  {
+    hs->GetYaxis()->SetTitleSize(30);
+    hs->GetYaxis()->SetTitleOffset(2);
+    hs->GetXaxis()->SetTitleOffset(1.5);
+    hs->GetXaxis()->SetTitleSize(30);
+    hs->GetXaxis()->SetTitle(xtitle);
+    hs->GetXaxis()->SetTitleFont(43);
+    //hs->GetXaxis()->SetLabelSize(20);
+  }
 
 
   if (data != "" && process == "")
