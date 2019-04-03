@@ -20,7 +20,7 @@ class Selector
     float totalGenB = 0;
     float bTagEff = 0;
     float acep = 0;
-
+    float MET_pz[2];
     float ttbarGen;
     float ttbarReco;
 
@@ -34,6 +34,7 @@ class Selector
     int GetNumberOfHistos();
     float Module(float x, float y, float z);
     float DR(TLorentzVector v1, TLorentzVector v2);
+    float * ComputeNuPz(TLorentzVector nuAux, TLorentzVector leadMuon);
 
     void CreateHistograms(TString prefix);
 
