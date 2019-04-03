@@ -20,7 +20,7 @@
 #define JET_MAX_PT 999
 #define DR_MAX_JETS 0.4
 #define MUON_MIN_PT 26.7 // 26.7
-#define BTAG_LIM 1.6
+#define BTAG_LIM 1.7
 #define MIN_TRUE_JETS 2
 #define MIN_B_JETS 1        // bJets >= MIN_B_JETS
 #define JET_MAX_ETA 2.4 //2.4
@@ -87,7 +87,6 @@ bool Selector::fileExist(const std::string name)
 
 void Selector::CreateHistograms(TString prefix)
 {
-
   //there variables may be called from other cpps.
   TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "", 8, 20, 130);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 6);
@@ -108,10 +107,12 @@ void Selector::CreateHistograms(TString prefix)
   TH1F* h15 = new TH1F(prefix + TString("_MCMassLeptW"), "", 100, 60, 100);
   TH1F* h16 = new TH1F(prefix + TString("_MCMassHadrT"), "", 100, 171.8, 173);
   TH1F* h17 = new TH1F(prefix + TString("_MCMassLeptT"), "", 100, 171.8, 173);
-  TH1F* h18 = new TH1F(prefix + TString("_JetMatchSuccess"), "", 12, -1, 3);
+  TH1F* h18 = new TH1F(prefix + TString("_JetMatchSuccess"), "", 12, -1, 3); //deleteme
   TH1F* h19 = new TH1F(prefix + TString("_MassHadrW"), "", 12, 30, 120);
-  TH1F* h20 = new TH1F(prefix + TString("_MassLeptW"), "", 12, 60, 200);
+  TH1F* h20 = new TH1F(prefix + TString("_MassLeptW"), "", 12, 20, 160);
   TH1F* h21 = new TH1F(prefix + TString("_MassHadrT"), "", 10, 60, 300);
+  TH1F* h22 = new TH1F(prefix + TString("_MassLeptT"), "", 10, 60, 300);
+  TH1F* h23 = new TH1F(prefix + TString("_MassBestT"), "", 10, 60, 300);
 
 
   histograms.push_back(h1); 
@@ -135,6 +136,8 @@ void Selector::CreateHistograms(TString prefix)
   histograms.push_back(h19); 
   histograms.push_back(h20); 
   histograms.push_back(h21); 
+  histograms.push_back(h22); 
+  histograms.push_back(h23); 
 }
 
 float Selector::Module(float x, float y, float z)
@@ -148,6 +151,40 @@ float Selector::DR(TLorentzVector v1, TLorentzVector v2)
   float dPhi2 = TMath::Power((v1.Phi()-v2.Phi()), 2);
   return TMath::Power(dEta2 + dPhi2, 0.5);  
 }
+
+float * Selector::ComputeNuPz(TLorentzVector nuAux, TLorentzVector leadMuon)
+{
+
+  float lpPx = leadMuon.Px();
+  float lpPy = leadMuon.Py();
+  float lpPz = leadMuon.Pz();
+  float nuPx = nuAux.Px();
+  float nuPy = nuAux.Py();
+
+  float massW = 80.379;
+  float lpM = 0.1057;
+
+  float root = (lpPx*lpPx + lpPy*lpPy + lpPz*lpPz)*(-4.0*lpPx*lpPx*nuPy*nuPy + 
+8.0*lpPx*lpPy*nuPx*nuPy + 4.0*lpPx*massW*massW*nuPx - 4.0*lpPy*lpPy*nuPx*nuPx + 
+4.0*lpPy*massW*massW*nuPy + massW*massW*massW*massW);
+
+  if (root >= 0)
+  {
+    MET_pz[0] = 0.5*(lpPz*(2.0*lpPx*nuPx + 2.0*lpPy*nuPy + massW*massW) - 
+    sqrt(root))/(lpPx*lpPx + lpPy*lpPy);
+
+    MET_pz[1] = 0.5*(lpPz*(2.0*lpPx*nuPx + 2.0*lpPy*nuPy + massW*massW) + 
+    sqrt(root))/(lpPx*lpPx + lpPy*lpPy);
+    return MET_pz;
+  }
+  else
+  {
+    MET_pz[0] = 999; MET_pz[1] = 999;
+    return MET_pz;
+  }
+}
+
+
 
 void Selector::Loop()
 { 
@@ -345,7 +382,7 @@ void Selector::Loop()
     bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
     for (int j = 0; j < NJet; j++)
     {
-      if (Jet_btag[j] > BTAG_LIM)
+      if (Jet_btag[j] >= BTAG_LIM)
       { // si es bTag
         bJets ++;
         jetIsB[j] = true;
@@ -365,6 +402,8 @@ void Selector::Loop()
       //jet.SetPxPyPzE(Muon_Px[0], Muon_Py[0], Muon_Pz[0], Muon_E[0]); 
       //if (muon.Pt() < 10.5) {std::cout <<"vaya eh"<< std::endl;}
       GetHisto("Muon_Iso")->Fill(Muon_Iso[j]/muon.Pt(), EventWeight);
+      //GetHisto("Muon_Iso")->Fill(Muon_Iso[j]/muon.Pt(), EventWeight);
+      //GetHisto("Muon_Iso")->Fill(muon.Pt(), EventWeight);
       
       if (Muon_Iso[j]/muon.Pt() < 0.2)
       {
@@ -406,25 +445,14 @@ void Selector::Loop()
       bLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
                               MCleptonicBottom_pz, 3333333);
 
-        /*
 
-        // jets reconocidos por evento (máximo 2)
-        int NRecoJets = 0;
-        if (auxDRHadr != 999) {NRecoJets ++;}
-        if (auxDRLept != 999) {NRecoJets ++;}
-
-        GetHisto("JetMatchSuccess")->Fill(bJets - NRecoJets, EventWeight);
-        GetHisto("JetMatchedRECO")->Fill(NRecoJets, EventWeight);
-        GetHisto("JetBTaggedRECO")->Fill(bJets, EventWeight);
-        }
-        */
 
       if (bHadrGEN.Pt() >= JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA)
       { // si encuentras un Jet hadronico en MC...
         float DRHadr, auxDRHadr = 999;
 
         for (int j = 0; j < NJet; j++)
-        { // ...mira a ver si lo matcheas con alguno en reco...
+        { // ...mira a ver si lo matcheas con alguno en reco... 
           GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
 
           if (jetIsGood[j])
@@ -435,29 +463,26 @@ void Selector::Loop()
             DRHadr = DR(bHadrGEN, jet);
 
             if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr){
-              if (auxDRHadr == 999) // if is the first match
+
+              if (auxDRHadr == 999)
               {
-                //bIdentAndMatched ++;
-                auxDRHadr = DRHadr;
+                totalGenB ++;
+                if (Jet_btag[j] >= BTAG_LIM) bIdentAndMatched ++;
               }
-              //else std::cout << "Hi Hadr" << std::endl;
+              else std::cout << "multiple hadr matches!" << std::endl;
+              
+              auxDRHadr = DRHadr;
             }            
           }
         }
-        totalGenB ++;
-        if (auxDRHadr < 999)
-        {
-          bIdentAndMatched ++;
-        }
       }
 
-
       if (bLeptGEN.Pt() >= JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA)
-      { // si encuentras un Jet hadronico en MC...
+      { // si encuentras un Jet Leptonico en MC...
         float DRLept, auxDRLept = 999;
 
         for (int j = 0; j < NJet; j++)
-        { // ...mira a ver si lo matcheas con alguno en reco...
+        { // ...mira a ver si lo matcheas con alguno en reco... 
           GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
 
           if (jetIsGood[j])
@@ -468,21 +493,20 @@ void Selector::Loop()
             DRLept = DR(bLeptGEN, jet);
 
             if(DRLept < DR_MAX_JETS && DRLept < auxDRLept){
-              if (auxDRLept == 999) // if is the first match
+
+              if (auxDRLept == 999)
               {
-                //bIdentAndMatched ++;
-                auxDRLept = DRLept;
+                totalGenB ++;
+                if (Jet_btag[j] >= BTAG_LIM) bIdentAndMatched ++;
               }
-              //else std::cout << "Hi Lept" << std::endl;
+              else std::cout << "multiple Lept matches!" << std::endl;
+              
+              auxDRLept = DRLept;
             }            
           }
         }
-        totalGenB ++;
-        if (auxDRLept < 999)
-        {
-          bIdentAndMatched ++;
-        }
       }
+
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -537,11 +561,12 @@ void Selector::Loop()
         if (b2.Pt() >= JET_MIN_PT && abs(b2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
 
         tmp++;
+        ttbarReco ++;
         //if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
         //    MCneutrino_px != 0 && MCleptonicBottom_px != 0)
         if (GoodMCJets >= MIN_TRUE_JETS && GoodMCbJets >= MIN_B_JETS)
         {
-          ttbarReco ++;
+          //std::cout << "GO FUCK YOURSELF!!!" << std::endl;
         }
       }
     }
@@ -621,15 +646,84 @@ void Selector::Loop()
 
           // ···································································
           // Leptonic branch ···················································
-          TLorentzVector nuAux;
-          nuAux.SetPx(MET_px); nuAux.SetPy(MET_py);
-          nuAux.SetE(TMath::Power(MET_px*MET_px + MET_py*MET_py, 0.5));
-         
-          float MLeptW = (nuAux + leadMuon).Mt();
-          if (abs(auxMjj - 81) < 30)
+          TLorentzVector nuAux[2];
+          nuAux[0].SetPx(MET_px); nuAux[0].SetPy(MET_py);
+          nuAux[1].SetPx(MET_px); nuAux[1].SetPy(MET_py);
 
-          GetHisto("MassLeptW")->Fill(MLeptW, EventWeight);
+          // 0 and 1 are the sema in the following line
+          float * MET_pz = ComputeNuPz(nuAux[0], leadMuon);
+
+          // what is the best MET_pz?
+          float nuE[2];
+          nuE[0] = TMath::Power(MET_px*MET_px + MET_py*MET_py + 
+                                  MET_pz[0]*MET_pz[0], 0.5);
+          nuE[1] = TMath::Power(MET_px*MET_px + MET_py*MET_py + 
+                                  MET_pz[1]*MET_pz[1], 0.5);
+
+          nuAux[0].SetPxPyPzE(MET_px, MET_py, MET_pz[0], nuE[0]);
+          nuAux[1].SetPxPyPzE(MET_px, MET_py, MET_pz[1], nuE[1]);
+
+          float MLeptW[2];
+          MLeptW[0] = (nuAux[0] + leadMuon).M();
+          MLeptW[1] = (nuAux[1] + leadMuon).M();
+          if (MET_pz[0] != 999){
+            GetHisto("MassLeptW")->Fill(MLeptW[0], EventWeight);
+          }
+          if (MET_pz[1] != 999){
+            GetHisto("MassLeptW")->Fill(MLeptW[1], EventWeight);
+          }
+
+          // matching with b-Jets
+          float MLpTop[2] = {999, 999};
+          float auxMLpTop[2];
+
+          for (int j = 0; j < NJet; j++)
+          {
+            if (jetIsB[j] && jetIsGood[j])
+
+            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+            auxMLpTop[0] = (jet + leadMuon + nuAux[0]).M();
+            auxMLpTop[1] = (jet + leadMuon + nuAux[1]).M();
+
+            if(abs(auxMLpTop[0] - TopMassTeo) < abs(MLpTop[0] - TopMassTeo) &&
+                abs(auxMLpTop[0] - TopMassTeo) < 90){
+              MLpTop[0] = auxMLpTop[0];
+            }
+            if(abs(auxMLpTop[1] - TopMassTeo) < abs(MLpTop[1] - TopMassTeo) &&
+                abs(auxMLpTop[1] - TopMassTeo) < 90){
+              MLpTop[1] = auxMLpTop[1];
+            }
+          }
+
+          float bestLeptMTop = 999;
+          if (MLpTop[0] < 999 && abs(MLpTop[0] - TopMassTeo) < 
+                                        abs(MLpTop[1] - TopMassTeo)) // our Top!
+          {
+            bestLeptMTop = MLpTop[0];
+          }
+          if (MLpTop[1] < 999 && abs(MLpTop[1] - TopMassTeo) < 
+                                        abs(MLpTop[0] - TopMassTeo)) // our Top!
+          {
+            bestLeptMTop = MLpTop[1];
+          }
           // ···································································        
+          
+          if (bestLeptMTop < 999)
+          {
+            GetHisto("MassLeptT")->Fill(bestLeptMTop, EventWeight);
+          }
+
+          //  Another Histo w/ Best MAssT per event.
+          if (abs(bestLeptMTop - TopMassTeo) < abs(M3j - TopMassTeo))
+          {
+            GetHisto("MassBestT")->Fill(bestLeptMTop, EventWeight);
+          }
+          else if (abs(M3j - TopMassTeo) < abs(bestLeptMTop - TopMassTeo))
+          {
+            GetHisto("MassBestT")->Fill(M3j, EventWeight);
+          }
+
         }
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -667,7 +761,7 @@ void Selector::Loop()
 
   float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
   acep = ttbarReco/(ttbarGen * BR);
-  //std::cout << "god :: "<< acep << std::endl;
+  std::cout << "god :: "<< acep << std::endl;
   //std::cout << "  TMP :: "<< tmp << std::endl;
   if (process=="ttbar")
   {
