@@ -348,12 +348,11 @@ void Plotter::plotWithRatio(TString process, TString nameH1, TString nameH2, \
   }
 
   //do Plots
-  TCanvas *c = new TCanvas("c", "canvas", 800, 800);
+  TCanvas *c = new TCanvas("c", "canvas", 1000, 1000);
   if (doLogY) {c->SetLogy(1);}
   // Normalizamos los histogramas a 1
   // h1->Scale(1/h1->Integral());
   // h2->Scale(1/h2->Integral());
-
 
   // Define Pads >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // See https://root.cern.ch/root/html/tutorials/hist/ratioplot.C.html
@@ -499,7 +498,7 @@ void Plotter::PrintGaussianFit(TH1F * histo)
   
   //TFitResultPtr fitData = histo->Fit(fit, "N");
   
-  TFitResultPtr fitData = histo->Fit(fit, "N");
+  TFitResultPtr fitData = histo->Fit(fit, "Q, N");
   Double_t p1 = fit->GetParameter(1);
   Double_t e1 = fit->GetParError(1);
   std::cout << p1 << " pm " << e1 << std::endl;
@@ -518,6 +517,7 @@ void Plotter::AddNormUnc(TH1F * hTarget, TString name, TString proc,
 
     for (int j = 1; j < hTarget->GetNbinsX() + 1; j++) 
     { // all bins except the last
+    //std::cout << "I'm here " <<hTarget->GetBinContent(j) <<  std::endl;
       if (j == hTarget->GetNbinsX())
       {
         Float_t overflow = hSource->GetBinContent(hSource->GetNbinsX()) + \
@@ -543,7 +543,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     minPad1 = 0;
   }
 
-  TCanvas *c = new TCanvas("c", "canvas", 1000, 900);
+  TCanvas *c = new TCanvas("c", "canvas", 1000, 1000);
 
 
   //name = returnFuckingName(_name, process);
@@ -620,18 +620,22 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     hTotal->Add(hBkg);
 
     // Syst errors
-    AddNormUnc(hTotal, name, "qcd", 1, hBinSys);
-    AddNormUnc(hTotal, name, "wjets", 0.5, hBinSys);
-    AddNormUnc(hTotal, name, "ww", 0.5, hBinSys);
-    AddNormUnc(hTotal, name, "wz", 0.5, hBinSys);
-    AddNormUnc(hTotal, name, "zz", 0.5, hBinSys);
-    AddNormUnc(hTotal, name, "dy", 0.15, hBinSys);
-    AddNormUnc(hTotal, name, "single_top", 0.3, hBinSys);
+    if (name == "MuonPt")
+    {
+      AddNormUnc(hTotal, name, "qcd", 1, hBinSys);
+      AddNormUnc(hTotal, name, "wjets", 0.5, hBinSys);
+      AddNormUnc(hTotal, name, "ww", 0.5, hBinSys);
+      AddNormUnc(hTotal, name, "wz", 0.5, hBinSys);
+      AddNormUnc(hTotal, name, "zz", 0.5, hBinSys);
+      AddNormUnc(hTotal, name, "dy", 0.15, hBinSys);
+      AddNormUnc(hTotal, name, "single_top", 0.3, hBinSys);
+
 
     for (int j = 1; j < hTotal->GetNbinsX() + 1; j++)
     {
-      std::cout << hBinSys[j-1] << std::endl;
+      //std::cout << hBinSys[j-1] << std::endl;
       hTotal->SetBinError(j, hBinSys[j-1]);
+    }
     }
   }
 
