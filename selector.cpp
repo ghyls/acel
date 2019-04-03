@@ -18,7 +18,7 @@
 
 #define JET_MIN_PT 30 // 30
 #define JET_MAX_PT 999
-#define DR_MAX_JETS 0.4
+#define DR_MAX_JETS 0.3
 #define MUON_MIN_PT 26.7 // 26.7
 #define BTAG_LIM 1.7
 #define MIN_TRUE_JETS 2
@@ -436,6 +436,12 @@ void Selector::Loop()
     //if (NTrueJets > 0  && process == "ttbar")
     if (process == "ttbar")
     {
+
+      for (int j = 0; j < NJet; j++)
+      {  
+        GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
+      }      
+      
       // bTags generados -------------------------------------------------------
       TLorentzVector bHadrGEN;
       TLorentzVector bLeptGEN;
@@ -453,7 +459,6 @@ void Selector::Loop()
 
         for (int j = 0; j < NJet; j++)
         { // ...mira a ver si lo matcheas con alguno en reco... 
-          GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
 
           if (jetIsGood[j])
           { // ...pero solo si pasa todos los cortes!
@@ -483,8 +488,6 @@ void Selector::Loop()
 
         for (int j = 0; j < NJet; j++)
         { // ...mira a ver si lo matcheas con alguno en reco... 
-          GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
-
           if (jetIsGood[j])
           { // ...pero solo si pasa todos los cortes!
 
@@ -761,7 +764,7 @@ void Selector::Loop()
 
   float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
   acep = ttbarReco/(ttbarGen * BR);
-  std::cout << "god :: "<< acep << std::endl;
+  //std::cout << "god :: "<< acep << std::endl;
   //std::cout << "  TMP :: "<< tmp << std::endl;
   if (process=="ttbar")
   {
