@@ -2,6 +2,7 @@
 #include "selector.h"
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 #include "TH1.h"
@@ -26,6 +27,7 @@
 #define JET_MAX_ETA 2.4 //2.4
 #define MUON_MAX_ETA 2.4 //2.4
 
+
 Selector::Selector(std::string _filePath, std::string _fileName)
 {
 
@@ -49,7 +51,6 @@ Selector::~Selector()
   for (int i = 0; i < histograms.size(); i++)
   {
     delete histograms[i];
-
   }
 
   histograms.clear();
@@ -87,6 +88,7 @@ bool Selector::fileExist(const std::string name)
 
 void Selector::CreateHistograms(TString prefix)
 {
+
   //there variables may be called from other cpps.
   TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "", 8, 20, 130);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 6);
@@ -184,53 +186,259 @@ float * Selector::ComputeNuPz(TLorentzVector nuAux, TLorentzVector leadMuon)
   }
 }
 
+void Selector::ComputeMissTagEff(float discr)
+{
+  // todos los jets no b incluye los que ni siquiera son jets, pero se han
+  // identificado como btags?
+
+  // calll me only if ttbar!
+
+  // no bTags generados --------------------------------------------------------
+  TLorentzVector qW1;
+  TLorentzVector qW2;
+
+  qW1.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py, \
+                          MChadronicWDecayQuark_pz, 666);
+  qW2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, \
+                          MChadronicWDecayQuarkBar_pz, 666);
 
 
-void Selector::Loop()
-{ 
-  TFile f(filePath + process + ".root");
+
+  if (qW1.Pt() >= JET_MIN_PT && abs(qW1.Eta()) <= JET_MAX_ETA)
+  { // si encuentras un Jet hadronico en MC...
+    float DRHadr, auxDRHadr = 999;
+
+    for (int j = 0; j < NJet; j++)
+    { // ...mira a ver si lo matcheas con alguno en reco... 
+
+      if (jetIsGood[j])
+      { // ...pero solo si pasa todos los cortes!
+
+        jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+        DRHadr = DR(qW1, jet);
+
+        if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr){
+
+          if (auxDRHadr == 999)
+          {
+            totalGenMissB ++;
+            if (Jet_btag[j] >= discr) missBIdentAndMatched ++;
+          }
+          //else std::cout << "multiple hadr matches!" << std::endl;
+
+          auxDRHadr = DRHadr;
+        }            
+      }
+    }
+  }
+
+  if (qW2.Pt() >= JET_MIN_PT && abs(qW2.Eta()) <= JET_MAX_ETA)
+  { // si encuentras un Jet Leptonico en MC...
+    float DRLept, auxDRLept = 999;
+
+    for (int j = 0; j < NJet; j++)
+    { // ...mira a ver si lo matcheas con alguno en reco... 
+      if (jetIsGood[j])
+      { // ...pero solo si pasa todos los cortes!
+
+        jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+        DRLept = DR(qW2, jet);
+
+        if(DRLept < DR_MAX_JETS && DRLept < auxDRLept){
+
+          if (auxDRLept == 999)
+          {
+            totalGenMissB ++;
+            if (Jet_btag[j] >= discr) missBIdentAndMatched ++;
+          }
+          //else std::cout << "multiple Lept matches!" << std::endl;
+
+          auxDRLept = DRLept;
+        }            
+      }
+    }
+  }
+}
+
+void Selector::ComputeBTagEff(float discr)
+{
+  // calll me only if ttbar!
+
+
+  // bTags generados -------------------------------------------------------
+  TLorentzVector bHadrGEN;
+  TLorentzVector bLeptGEN;
+
+  bHadrGEN.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, \
+                          MChadronicBottom_pz, 3333333);
+  bLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
+                          MCleptonicBottom_pz, 3333333);
+
+
+
+  if (bHadrGEN.Pt() >= JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA)
+  { // si encuentras un Jet hadronico en MC...
+    float DRHadr, auxDRHadr = 999;
+
+    for (int j = 0; j < NJet; j++)
+    { // ...mira a ver si lo matcheas con alguno en reco... 
+
+      if (jetIsGood[j])
+      { // ...pero solo si pasa todos los cortes!
+
+        jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+        DRHadr = DR(bHadrGEN, jet);
+
+        if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr){
+
+          if (auxDRHadr == 999)
+          {
+            totalGenB ++;
+            if (Jet_btag[j] >= discr) bIdentAndMatched ++;
+          }
+          //else std::cout << "multiple hadr matches!" << std::endl;
+
+          auxDRHadr = DRHadr;
+        }            
+      }
+    }
+  }
+
+  if (bLeptGEN.Pt() >= JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA)
+  { // si encuentras un Jet Leptonico en MC...
+    float DRLept, auxDRLept = 999;
+
+    for (int j = 0; j < NJet; j++)
+    { // ...mira a ver si lo matcheas con alguno en reco... 
+      if (jetIsGood[j])
+      { // ...pero solo si pasa todos los cortes!
+
+        jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+
+        DRLept = DR(bLeptGEN, jet);
+
+        if(DRLept < DR_MAX_JETS && DRLept < auxDRLept){
+
+          if (auxDRLept == 999)
+          {
+            totalGenB ++;
+            if (Jet_btag[j] >= discr) bIdentAndMatched ++;
+          }
+          //else std::cout << "multiple Lept matches!" << std::endl;
+
+          auxDRLept = DRLept;
+        }            
+      }
+    }
+  }
+}
+
+void Selector::DoJetPting()
+{
+  std::fill_n(jetHasGoodPtEta, 20, false);
+  for (int j = 0; j < NJet; j++)
+  {
+    jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+    //std::cout << jet.Pt() << std::endl;
+    if (jet.Pt() >= JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
+    {
+      jetHasGoodPtEta[j] = true;
+    }
+  }
+}
+
+void Selector::JetQuality()
+{
+  std::fill_n(jetIsGood, 20, false);
+  for (int j = 0; j < NJet; j++)
+  {
+    if (Jet_ID[j] && jetHasGoodPtEta[j]) {NTrueJets++; jetIsGood[j] = true;}
+  }
+}
+
+void Selector::DoBTagging(float discr)
+{
+  std::fill_n(jetIsB, 20, false);
+  for (int j = 0; j < NJet; j++)
+  {
+    if (Jet_btag[j] >= discr)
+    { // si es bTag
+      bJets ++;
+      jetIsB[j] = true;
+    }
+  }
+  //std::cout << bJets << std::endl;
+}
+
+void Selector::PrintBTagEffData()
+{
+  TFile f(filePath + process + ".root"); // only ttbar!!
   TTree * tree = (TTree *) f.Get("events");
+  ReadTrees(tree);
 
-  Int_t numEvents = tree->GetEntries();
+  std::ofstream df, ef;
+  df.open("./PyTools/bTag.dat");
+  ef.open("./PyTools/missTag.dat");
 
-  // Set Adresses to branches >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  Int_t NMuon;
-  Int_t NJet;
-  Float_t Jet_E[20]; 
-  Float_t Jet_btag[20]; 
-  Bool_t Jet_ID[20]; 
-  Float_t Jet_Px[20], Jet_Py[20], Jet_Pz[20];
+  df << "# this is an auto-generated file. You better don't edit it \n\n";
+  df << "# discr   bTagEff\n" << std::endl;
 
-  Float_t MChadronicBottom_px; // if filled, there are 1 b tags.
-  Float_t MChadronicBottom_py; // if filled, there are 1 b tags.
-  Float_t MChadronicBottom_pz; // if filled, there are 1 b tags.
+  ef << "# this is an auto-generated file. You better don't edit it \n\n";
+  ef << "# discr   bTagEff\n" << std::endl;
 
-  Float_t MCleptonicBottom_px; // if filled, there are 2 b tags.
-  Float_t MCleptonicBottom_py; // if filled, there are 2 b tags.
-  Float_t MCleptonicBottom_pz; // if filled, there are 2 b tags.
+  for (float dis = 1; dis <= 6; dis += 0.1)
+  {
+    for (int i = 0; i < numEvents; i++)
+    {
+      tree->GetEntry(i);
+      DoJetPting();
+      JetQuality();
+      DoBTagging(dis);
+      ComputeBTagEff(dis);
+      ComputeMissTagEff(dis);
+    }
+    df << dis << "    " << bIdentAndMatched/totalGenB << std::endl;
+    ef << dis << "    " << missBIdentAndMatched/totalGenMissB << std::endl;
 
-  Float_t MChadronicWDecayQuark_px;
-  Float_t MChadronicWDecayQuark_py;
-  Float_t MChadronicWDecayQuark_pz;
+    bIdentAndMatched = 0;
+    missBIdentAndMatched = 0;
+    totalGenB = 0;
+    totalGenMissB = 0;
+  }
+  df.close();
+  ef.close();
+}
 
-  Float_t MChadronicWDecayQuarkBar_px;
-  Float_t MChadronicWDecayQuarkBar_py;
-  Float_t MChadronicWDecayQuarkBar_pz;
-  
-
-  Bool_t triggerIsoMu24;
-  Float_t Muon_Px[5]; // just in case... memory is not a problem here
-  Float_t Muon_Py[5];
-  Float_t Muon_Pz[5];
-  Float_t Muon_E[5];
-  Float_t MET_px, MET_py;
-  Float_t Muon_Iso[5];
-  Float_t EventWeight;
-  Float_t MClepton_px[5], MClepton_py[5], MClepton_pz[5];
-  Float_t MCneutrino_px, MCneutrino_py, MCneutrino_pz;
-  Int_t MCleptonPDGid[5]; // 11 electrones, 13 muones, 15 taus
+void Selector::ClearVariables()
+{
+  bJets = 0;
+  NTrueJets = 0;
 
 
+
+  leadMuon.SetPxPyPzE(0, 0, 0, 0); 
+  muon2.SetPxPyPzE(0, 0, 0, 0); 
+  muon.SetPxPyPzE(0, 0, 0, 0);  
+  jet.SetPxPyPzE(0, 0, 0, 0);   
+  jet2.SetPxPyPzE(0, 0, 0, 0);  
+  nu.SetPxPyPzE(0, 0, 0, 0);    
+  W.SetPxPyPzE(0, 0, 0, 0);
+  b.SetPxPyPzE(0, 0, 0, 0);
+  b2.SetPxPyPzE(0, 0, 0, 0);
+
+  std::fill_n(jetHasGoodPtEta, 20, false);
+  std::fill_n(jetIsGood, 20, false);
+  std::fill_n(jetIsB, 20, false);
+}
+
+void Selector::ReadTrees(TTree * tree)
+{
+  numEvents = tree->GetEntries();
+
+  // Set Adresses to branches >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   tree->SetBranchAddress("NMuon", &NMuon); //
   tree->SetBranchAddress("Muon_Px", &Muon_Px);
@@ -276,8 +484,13 @@ void Selector::Loop()
 
 
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+}
 
-
+void Selector::Loop()
+{ 
+  TFile f(filePath + process + ".root");
+  TTree * tree = (TTree *) f.Get("events");
+  ReadTrees(tree);
 
 
 
@@ -290,22 +503,16 @@ void Selector::Loop()
   ttbarGen = 36941;
   ttbarReco = 0;
 
+    if (process == "ttbar")
+    {
+      //PrintBTagEffData();
+    }
+    
   for (int i = 0; i < numEvents; i++)
   {
     tree->GetEntry(i);
 
     if (process == "data") {EventWeight = 1;}
-
-    TLorentzVector leadMuon; 
-    TLorentzVector muon2; 
-
-    TLorentzVector muon;  // aux variables
-    TLorentzVector jet;   // aux variables
-    TLorentzVector jet2;  // aux variables
-    TLorentzVector nu;    // aux variables
-    TLorentzVector W;
-    TLorentzVector b;
-    TLorentzVector b2;
 
 
     // compute TMass from MC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -354,40 +561,43 @@ void Selector::Loop()
 
 
     // jet Pting >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    bool jetHasGoodPtEta[20]; std::fill_n(jetHasGoodPtEta, 20, false);
-    for (int j = 0; j < NJet; j++)
-    {
-      jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-      
-      if (jet.Pt() >= JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
-      {
-        jetHasGoodPtEta[j] = true;
-      }
-    }
+    //bool jetHasGoodPtEta[20]; std::fill_n(jetHasGoodPtEta, 20, false);
+    //for (int j = 0; j < NJet; j++)
+    //{
+    //  jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+    //  
+    //  if (jet.Pt() >= JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
+    //  {
+    //    jetHasGoodPtEta[j] = true;
+    //  }
+    //}
+    DoJetPting();
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
     // jet quality >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int NTrueJets = 0;
-    bool jetIsGood[20]; std::fill_n(jetIsGood, 20, false);
-    for (int j = 0; j < NJet; j++)
-    {
-      if (Jet_ID[j] && jetHasGoodPtEta[j]) {NTrueJets++; jetIsGood[j] = true;}
-    }
+    //int NTrueJets = 0;
+    //bool jetIsGood[20]; std::fill_n(jetIsGood, 20, false);
+    //for (int j = 0; j < NJet; j++)
+    //{
+    //  if (Jet_ID[j] && jetHasGoodPtEta[j]) {NTrueJets++; jetIsGood[j] = true;}
+    //}
+    JetQuality();
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
     // b tagging >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int bJets = 0;
-    bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
-    for (int j = 0; j < NJet; j++)
-    {
-      if (Jet_btag[j] >= BTAG_LIM)
-      { // si es bTag
-        bJets ++;
-        jetIsB[j] = true;
-      }
-    }
+    //int bJets = 0;
+    //bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
+    //for (int j = 0; j < NJet; j++)
+    //{
+    //  if (Jet_btag[j] >= BTAG_LIM)
+    //  { // si es bTag
+    //    bJets ++;
+    //    jetIsB[j] = true;
+    //  }
+    //}
+    DoBTagging(BTAG_LIM);
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     Int_t NIsoMuon = 0;
@@ -436,80 +646,12 @@ void Selector::Loop()
     //if (NTrueJets > 0  && process == "ttbar")
     if (process == "ttbar")
     {
-
       for (int j = 0; j < NJet; j++)
       {  
         GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
       }      
-      
-      // bTags generados -------------------------------------------------------
-      TLorentzVector bHadrGEN;
-      TLorentzVector bLeptGEN;
 
-      bHadrGEN.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, \
-                              MChadronicBottom_pz, 3333333);
-      bLeptGEN.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, \
-                              MCleptonicBottom_pz, 3333333);
-
-
-
-      if (bHadrGEN.Pt() >= JET_MIN_PT && abs(bHadrGEN.Eta()) <= JET_MAX_ETA)
-      { // si encuentras un Jet hadronico en MC...
-        float DRHadr, auxDRHadr = 999;
-
-        for (int j = 0; j < NJet; j++)
-        { // ...mira a ver si lo matcheas con alguno en reco... 
-
-          if (jetIsGood[j])
-          { // ...pero solo si pasa todos los cortes!
-
-            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-
-            DRHadr = DR(bHadrGEN, jet);
-
-            if(DRHadr < DR_MAX_JETS && DRHadr < auxDRHadr){
-
-              if (auxDRHadr == 999)
-              {
-                totalGenB ++;
-                if (Jet_btag[j] >= BTAG_LIM) bIdentAndMatched ++;
-              }
-              else std::cout << "multiple hadr matches!" << std::endl;
-              
-              auxDRHadr = DRHadr;
-            }            
-          }
-        }
-      }
-
-      if (bLeptGEN.Pt() >= JET_MIN_PT && abs(bLeptGEN.Eta()) <= JET_MAX_ETA)
-      { // si encuentras un Jet Leptonico en MC...
-        float DRLept, auxDRLept = 999;
-
-        for (int j = 0; j < NJet; j++)
-        { // ...mira a ver si lo matcheas con alguno en reco... 
-          if (jetIsGood[j])
-          { // ...pero solo si pasa todos los cortes!
-
-            jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-
-            DRLept = DR(bLeptGEN, jet);
-
-            if(DRLept < DR_MAX_JETS && DRLept < auxDRLept){
-
-              if (auxDRLept == 999)
-              {
-                totalGenB ++;
-                if (Jet_btag[j] >= BTAG_LIM) bIdentAndMatched ++;
-              }
-              else std::cout << "multiple Lept matches!" << std::endl;
-              
-              auxDRLept = DRLept;
-            }            
-          }
-        }
-      }
-
+      ComputeBTagEff(BTAG_LIM);
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -582,7 +724,10 @@ void Selector::Loop()
       go = true;}
     else {go = false;}   //  TTBAR ANALYSIS 
 
-    if (!go) {continue;}
+    if (!go) {
+      ClearVariables();
+      continue;
+      }
     // =========================================================================
 
 
@@ -760,6 +905,7 @@ void Selector::Loop()
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    ClearVariables();
   }
 
   float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
