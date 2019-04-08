@@ -106,8 +106,9 @@ los MC que son pequeños y quitar los que son 0
 
 
 
-
-
+¿Qué hago en el plot cuando tengo 0.algo eventos?
+¿Qué hago con muon ISO?
+La incertidumbre estadistica del MC, la pinto junto a la sistemática?
 
 
 
