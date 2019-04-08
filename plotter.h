@@ -26,6 +26,8 @@ class Plotter
         TString title = ""; 
         TString outName = "out"; 
         float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
+    
+        float nEventsVV = 0;
 
         Plotter();
         Plotter(std::vector<std::string> bkgs, std::string pathToFiles, 
@@ -45,6 +47,7 @@ class Plotter
         int GetEvents(TString name);
         void PrintEvents(TString name);
         //template <typename T>
+        void AddToLegend(TLegend * leg, TH1F * h, TString name, float Integral);
         void Stack(TString _name, TString process, bool drawRatios, 
                     TString options, std::vector<TString> hisoNames = {},
                     bool doLogY = 0, Float_t maxY = -1);
