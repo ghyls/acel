@@ -13,6 +13,7 @@
 #include "TLegend.h"
 #include "THStack.h"
 #include "TLine.h"
+#include "TLatex.h"
 
 
 
@@ -528,6 +529,32 @@ void Plotter::AddNormUnc(TH1F * hTarget, TString name, TString proc,
     }
 }
 
+void Plotter::AddToLegend(TLegend * leg, TH1F * h, TString name, float Integral)
+{
+  //  MAXIMUM HARDCODING
+  if ((int)Integral > 0)
+  {
+
+    if (name != "data")
+    {
+      if (name == "wjets") {name = "W + jets";}
+      if (name == "ttbar") {name = "TTbar";}
+      if (name == "single_top") {name = "Single Top";}
+      if (name == "dy") {name = "Drell Yan";}
+      
+      // define some groups here...
+      if (name == "wjets") {name = "W + jets";}
+      if (name == "ttbar") {name = "TTbar";}
+      if (name == "single_top") {name = "Single Top";}
+      if (name == "dy") {name = "Drell Yan";}
+      leg->AddEntry(h, name + Form(": %1.0f", Integral), "f");
+    }
+    else
+    {
+      leg->AddEntry(h, name + Form(": %1.0f", Integral), "p");
+    }
+  }
+}
 
 void Plotter::Stack(TString name, TString process, bool drawRatios, 
   TString options, std::vector<TString> histoNames, bool doLogY, Float_t maxY)
@@ -551,7 +578,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
 
   TH1F* hdata;
   
-  THStack *hs = new THStack("hstack_" + name, "hstack");
+  THStack *hs = new THStack("hstack_" + name, "");
 
 
   TPad *pad1 = new TPad("pad1", "pad1", 0, minPad1, 1, 1);
@@ -562,11 +589,10 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   pad1->SetGridx();         // Vertical grid
   pad1->Draw();             // Draw the upper pad: pad1
   pad1->cd();               // pad1 becomes the current pad    
-  TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); 
-  leg.SetTextSize(LegendTextSize);
-  leg.SetBorderSize(0);
-  leg.SetFillStyle(0);
-  
+  TLegend * leg = new TLegend(fLegX1, fLegY1, fLegX2, fLegY2); 
+  leg->SetTextSize(LegendTextSize);
+  leg->SetBorderSize(0);
+  leg->SetFillStyle(0);
 
   
   // ESTOS TRES HISTOGRAMAS SE usarán para calcular la normalización y ponerla
@@ -642,6 +668,19 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   // if we want to stack different histos from the SAME process
   if (process == "")// if we want to stack the same histo for DIFERENT processes
   {
+    nEventsVV = 0;
+    // create an empty auxiliar histo for the VV process
+    TH1F* hVV = (TH1F*)hTotal->Clone("hVV"); 
+    hVV->SetFillColor(kBlack);
+    hVV->SetLineColor(kBlack);
+    hVV->SetLineWidth(0);
+
+    for (int j = 1; j < hVV->GetNbinsX() + 1; j++)
+    {
+      hVV->SetBinContent(j, 0);
+    }
+    TH1F* hTTbar; 
+
     for (unsigned int i = 0; i < listOfSelectors.size(); i++)
     {
       TH1F* h = listOfSelectors[i]->GetHisto(name); // TODO: DON'T MAKE ME LAUGH
@@ -649,17 +688,42 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
       //std::cout << "name: " << h->GetName() << std::endl;
       //std::cout << "integral " << h->Integral() << std::endl;
     
-
       h->SetFillColor(listOfColors[i]);
       h->SetLineColor(kBlack);
       h->SetLineWidth(0);
       DrawOverflowBin(h);
+        
+      if (listOfSelectors[i]->process == "ttbar")
+      {
+        hTTbar = (TH1F*)h->Clone("hTTbar");  
+      }
+      else if (h->Integral() < 10)
+      {
+        if (listOfSelectors[i]->process == "ww" || 
+            listOfSelectors[i]->process == "wz" || 
+            listOfSelectors[i]->process == "zz") 
+        {
+          hVV->Add(h);
+          nEventsVV += h->Integral();
+        }
+      }
+      else if (h->Integral() >= 10)
+      {
+        hs->Add(h);
+        AddToLegend(leg, h, listOfSelectors[i]->process, h->Integral());
+      } 
       
+      //leg->AddEntry(h, listOfSelectors[i]->process + Form(": %1.0f", \
+      //              h->Integral()), "f");
       
-      hs->Add(h);
-      leg.AddEntry(h, listOfSelectors[i]->process + Form(": %1.0f", \
-                    h->Integral()), "f");
     }
+    if (nEventsVV > 0)
+    {
+      hs->Add(hVV);
+      AddToLegend(leg, hVV, "VV", nEventsVV);
+    }
+    hs->Add(hTTbar);
+    AddToLegend(leg, hTTbar, "ttbar", hTTbar->Integral()); 
   }
   else
   {
@@ -672,12 +736,13 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
 
         TH1F* h = listOfSelectors[j]->GetHisto(TString(histoNames[i]));
         h->SetFillColor(listOfColors[i]);
-        h->SetLineColor(kBlack);
+        //h->SetLineColor(kBlack);
         h->SetLineWidth(0);
         DrawOverflowBin(h);
         hs->Add(h);
-        leg.AddEntry(h, histoNames[i] + Form(": %1.0f", \
+        leg->AddEntry(h, histoNames[i] + Form(": %1.0f", \
                       h->Integral()), "f");
+        //AddToLegend(leg, h, histoNames[i], h->Integral());
       }
     }
   }
@@ -696,9 +761,21 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     pad1->SetRightMargin(0.12);
 
   }
+
+
+
   hs->Draw("hist");
   if (process == "")
   {
+    TLatex* texLumi = new TLatex(0.,0., 
+                          Form("50 pb^{-1}, #sqrt{s} = 7 TeV"));
+    texLumi->SetTextAlign(12);
+    texLumi->SetX(100); // 15
+    texLumi->SetY(385); // 89
+    texLumi->SetTextSize(0.04);
+    texLumi->SetTextSizePixels(10); // 22
+    texLumi->Draw("same");
+
     hTotal->SetFillStyle(3444);
     hTotal->SetFillColor(kGray+2);
     hTotal->Draw("same,e2");
@@ -712,7 +789,8 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   
   if (maxY == -1){hs->SetMaximum(max*1.1);}
   else{hs->SetMaximum(maxY);}
-  hs->SetMinimum(0.0001);
+  //hs->SetMinimum(0.0001);
+  hs->SetMinimum(1);
   hs->GetYaxis()->SetTitleOffset(1.5);
   hs->GetYaxis()->SetTitleSize(25);
   hs->GetYaxis()->SetTitleFont(43);
@@ -746,8 +824,9 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     Float_t maxData = hdata->GetMaximum();
     if (max < maxData) {max = maxData;}
 
-    leg.AddEntry(hdata, dataSelector->process + Form(": %1.0f", \
-                  hdata->Integral()), "p");
+    //leg->AddEntry(hdata, dataSelector->process + Form(": %1.0f", \
+    //              hdata->Integral()), "p");
+    AddToLegend(leg, hdata, dataSelector->process, hdata->Integral());
   }
 
   
@@ -812,7 +891,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     hratio->Draw("e2, same");
   }
   
-  pad1->cd(); leg.Draw("same");
+  pad1->cd(); leg->Draw("same");
 
   c->Print(outName + ".png", "png");
 
