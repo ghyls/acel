@@ -109,8 +109,15 @@ los MC que son pequeños y quitar los que son 0
 ¿Qué hago en el plot cuando tengo 0.algo eventos?
 ¿Qué hago con muon ISO?
 La incertidumbre estadistica del MC, la pinto junto a la sistemática?
+Como propago la incertidumbre estadistica en el MC?
 
+Para qué quiero la eficiencia de bTag en datos? lo de tomar 0.9 effMC para la eff 
+en datos es aconsejable... hay alternativas?
+Si uso la segunda forula de la secc eficaz, como propago ahi las eficiencias?
+En la aceptancia, el denominador es el numero total de sucesos "simulados"?
+¿TTbar no tiene incertidumbres de normalizacion?
 
+corrige el calculo de la Xsec!!!
 
 Printing number of events for histogram MuonPt:
 ----------------------------------------------------
