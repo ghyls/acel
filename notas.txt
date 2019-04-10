@@ -104,18 +104,52 @@ pintar los cortes sobre el plot, la lumi, la secc eff, quitar el titulo, reunir
 los MC que son pequeños y quitar los que son 0
 
 
+Tomar tres valores en MissTag:
+
+0.1 -> Tight
+1 -> Medium
+10 -> Loose     (bEff alta)
+
+
+para el BR, miramos el BR de t a bW, y luego 
+
+    W a muones  
+    W a tasu
+    taus a muones
+
+
+Rango de valores:
+
+    BR -> 14 / 17 por ciento
+    Nttbar -> mayor o igual que 100, menor que 800
+    porcentaje de fondo -> entre el 2 y el 30 por ciento de los datos
+    xsec -> entre 145 y 185
+    la incertidumbre de xsec -> Entre el 15 y el 25 por ciento
+
 
 
 ¿Qué hago en el plot cuando tengo 0.algo eventos?
+        - pones en la leyenda que tienes < 1
+
 ¿Qué hago con muon ISO?
+        - Nada. La culpa es del MonteCarlo
+
 La incertidumbre estadistica del MC, la pinto junto a la sistemática?
+        - No. Es muy pequeña. Pero tenla en cuenta para l Xsec
+
 Como propago la incertidumbre estadistica en el MC?
+
+Qué hago con la aceptancia? 
+        - Metes la buena y calculas el error co la mala
 
 Para qué quiero la eficiencia de bTag en datos? lo de tomar 0.9 effMC para la eff 
 en datos es aconsejable... hay alternativas?
+
 Si uso la segunda forula de la secc eficaz, como propago ahi las eficiencias?
 En la aceptancia, el denominador es el numero total de sucesos "simulados"?
+
 ¿TTbar no tiene incertidumbres de normalizacion?
+    - No. Deberíammos pintarla en los plots  pero no entra en la formula de Xsec
 
 corrige el calculo de la Xsec!!!
 

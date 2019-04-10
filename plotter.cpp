@@ -145,7 +145,7 @@ void Plotter::PrintEvents(TString name)
   {
     TH1F* h = listOfSelectors[i]->GetHisto(name);
 
-    std::cout << listOfSelectors[i]->process <<": "<< h->Integral() << std::endl;
+    //std::cout << listOfSelectors[i]->process <<": "<< h->Integral() << std::endl;
     totalEvts += h->Integral();
   }
 
@@ -168,12 +168,19 @@ void Plotter::PrintXSecData()
   float totalMC = 0;
   float totalData = 0;
   float totalTTbar = 0;
-
+  float totalBkgNormUnc = 0;
   for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
     TH1F* h = listOfSelectors[i]->GetHisto("TempXSec");
 
     totalMC +=h->Integral();
+    if (listOfSelectors[i]->process == "qcd") totalBkgNormUnc += h->Integral() * 1; 
+    if (listOfSelectors[i]->process == "wjets") totalBkgNormUnc += h->Integral() * 0.5; 
+    if (listOfSelectors[i]->process == "ww") totalBkgNormUnc += h->Integral() * 0.5; 
+    if (listOfSelectors[i]->process == "wz") totalBkgNormUnc += h->Integral() * 0.5; 
+    if (listOfSelectors[i]->process == "zz") totalBkgNormUnc += h->Integral() * 0.5; 
+    if (listOfSelectors[i]->process == "dy") totalBkgNormUnc += h->Integral() * 0.15; 
+    if (listOfSelectors[i]->process == "single_top") totalBkgNormUnc += h->Integral() * 0.3;     
     if (listOfSelectors[i]->process == "ttbar")
     {
       totalTTbar += h->Integral();
@@ -187,7 +194,7 @@ void Plotter::PrintXSecData()
 
   float totalSignal = totalData - (totalMC - totalTTbar);
 
-  std::cout << totalSignal << ' ' << totalTTbar << ' ' << (totalMC - totalTTbar) << std::endl;
+  //std::cout << totalSignal << ' ' << totalTTbar << ' ' << (totalMC - totalTTbar) << std::endl;
 
   //std::cout << totalSignal << std::endl;
   //http://pdglive.lbl.gov/Particle.action?node=Q007&init=0
@@ -200,7 +207,7 @@ void Plotter::PrintXSecData()
   std::vector<double> integralsTEff = GetTriggerEff();
   std::vector<double> integralsAcep = GetAcceptance();
 
-  float bTagEff = integralsBTag[0]/integralsBTag[1];
+  float bTagEff = integralsBTag[0]/integralsBTag[1] * 0.9;  // God Knows
   float triggEff = integralsTEff[0]/integralsTEff[1];
   float muonEff = 0.99;   // pm 0.01
   float lumi = 50;        // pb, pm 10%
@@ -215,20 +222,22 @@ void Plotter::PrintXSecData()
   //acep = totalTTbar / (eff * lumi * BR * sigmaTeo);
   float acep2 = totalTTbar / (eff * lumi * BR * sigmaTeo);
   std::cout << acep2 << std::endl;
-  float sigma = totalSignal / (lumi * acep * eff * BR);
+  std::cout << totalSignal << std::endl;
+  float sigma = totalSignal / (lumi * acep2 * eff * BR);
   std::cout << "Cross Section: " << sigma << std::endl;        
   std::cout << "================================" << std::endl;
   
 
   std::ofstream f;
   f.open("./PyTools/xsec.dat");
-  f << "# this is an auto-generated file. You better don't edit it \n\n";
-  f << "# Btag, Teff, Acep; [num, denom]\n" << std::endl;
+  f << "# this is an auto-generated file. You better don't edit it \n";
+  f << "# Btag, Teff, Acep, [Ndat, Nbkg]\n" << std::endl;
 
   f << integralsBTag[0] << ' ' << integralsBTag[1] << std::endl;
   f << integralsTEff[0] << ' ' << integralsTEff[1] << std::endl;
   f << integralsAcep[0] << ' ' << integralsAcep[1] << std::endl;
   f << totalData << ' ' << totalMC - totalTTbar << std::endl;
+  f << totalBkgNormUnc << " 0" << std::endl;
   f.close();
 }
 
@@ -502,36 +511,38 @@ void Plotter::PrintGaussianFit(TH1F * histo)
   TFitResultPtr fitData = histo->Fit(fit, "Q, N");
   Double_t p1 = fit->GetParameter(1);
   Double_t e1 = fit->GetParError(1);
-  std::cout << p1 << " pm " << e1 << std::endl;
+  //std::cout << p1 << " pm " << e1 << std::endl;
 }
 
 void Plotter::AddNormUnc(TH1F * hTarget, TString name, TString proc, 
                                                     float perc, float * hBinSys)
 {
-    // hTarget is a histo with the same bining as hSource
-    TH1F* hSource;
-    for (unsigned int i = 0; i < listOfSelectors.size(); i++)
-    {    
-      if (listOfSelectors[i]->process == proc)
-        {hSource = listOfSelectors[i]->GetHisto(name);}
-    }
+  // hTarget is a histo with the same bining as hSource
+  TH1F* hSource;
+  for (unsigned int i = 0; i < listOfSelectors.size(); i++)
+  {    
+    if (listOfSelectors[i]->process == proc)
+      {hSource = listOfSelectors[i]->GetHisto(name);}
+  }
 
-    for (int j = 1; j < hTarget->GetNbinsX() + 1; j++) 
-    { // all bins except the last
-    //std::cout << "I'm here " <<hTarget->GetBinContent(j) <<  std::endl;
-      if (j == hTarget->GetNbinsX())
-      {
-        Float_t overflow = hSource->GetBinContent(hSource->GetNbinsX()) + \
-            hSource->GetBinContent(hSource->GetNbinsX() + 1);
-        hBinSys[j-1] += overflow * perc;
-      }
-      else hBinSys[j-1] += hSource->GetBinContent(j) * perc;
+  for (int j = 1; j < hTarget->GetNbinsX() + 1; j++) 
+  { // all bins except the last
+  //std::cout << "I'm here " <<hTarget->GetBinContent(j) <<  std::endl;
+    if (j == hTarget->GetNbinsX())
+    {
+      Float_t overflow = hSource->GetBinContent(hSource->GetNbinsX()) + \
+          hSource->GetBinContent(hSource->GetNbinsX() + 1);
+      hBinSys[j-1] += overflow * perc;
     }
+    else hBinSys[j-1] += hSource->GetBinContent(j) * perc;
+  }
 }
 
 void Plotter::AddToLegend(TLegend * leg, TH1F * h, TString name, float Integral)
 {
-  //  MAXIMUM HARDCODING
+
+  //  M A X I M U M   H A R D C O D I N G
+
   if ((int)Integral > 0)
   {
 
@@ -645,9 +656,11 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     hTotal = (TH1F*)hSignal->Clone("hTotal");
     hTotal->Add(hBkg);
 
-    // Syst errors
-    if (name == "MuonPt")
+    // Add Sys erorrs and read the statistical ones
+    if (name == "MuonPt") // o si es tempXsec!
     {
+      // Now we read and store the stat errors
+
       AddNormUnc(hTotal, name, "qcd", 1, hBinSys);
       AddNormUnc(hTotal, name, "wjets", 0.5, hBinSys);
       AddNormUnc(hTotal, name, "ww", 0.5, hBinSys);
@@ -706,6 +719,12 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
           hVV->Add(h);
           nEventsVV += h->Integral();
         }
+        else
+        {
+          hs->Add(h);
+          AddToLegend(leg, h, listOfSelectors[i]->process, h->Integral());
+        }
+        
       }
       else if (h->Integral() >= 10)
       {
@@ -767,14 +786,25 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   hs->Draw("hist");
   if (process == "")
   {
-    TLatex* texLumi = new TLatex(0.,0., 
+    TLatex* texLumi = new TLatex(0, 0, 
                           Form("50 pb^{-1}, #sqrt{s} = 7 TeV"));
     texLumi->SetTextAlign(12);
-    texLumi->SetX(100); // 15
-    texLumi->SetY(385); // 89
+    texLumi->SetNDC(1);
+    texLumi->SetX(0.72); // 15
+    texLumi->SetY(0.93); // 89
     texLumi->SetTextSize(0.04);
     texLumi->SetTextSizePixels(10); // 22
     texLumi->Draw("same");
+
+    TLatex* texCuts = new TLatex(0, 0, 
+                          Form("1 isolated Muon with pt > 26"));
+    texCuts->SetTextAlign(12);
+    texCuts->SetNDC(1);
+    texCuts->SetX(0.13); // 15
+    texCuts->SetY(0.93); // 89
+    texCuts->SetTextSize(0.04);
+    texCuts->SetTextSizePixels(10); // 22
+    texCuts->Draw("same");
 
     hTotal->SetFillStyle(3444);
     hTotal->SetFillColor(kGray+2);

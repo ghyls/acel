@@ -80,17 +80,18 @@ variables =    [
 
 
 
-# qué son las incertidumbres de normalización? 
-# definimos algunos valores más, sin error asociado. >>>>>>>>>>>>>>>>>>>>>>>>>>>
+# que son las incertidumbres de normalizacion? 
+# definimos algunos valores mas, sin error asociado. >>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 BRTToMuB = 0.134
-BRTToTauB = 0.71
-BRTauToMu = 0.1739
 BRTTo2JB = 0.665
 
 # CALCULA EL NUMERO DE EVENTOS ANTES DE PESAR!
 
-BRTTbarToMu = (BRTToMuB + BRTToTauB * BRTauToMu) * BRTTo2JB * 2
+BRTTbarToMu = (BRTToMuB) * BRTTo2JB * 2
+
+
+print(BRTTbarToMu)
 
 # definimos las cantidades que introducimos en la fórmula de Xsec >>>>>>>>>>>>>>
 #print("acep,", NUM_acep/DEN_acep/BRTTbarToMu, "bteff", NUM_bTAgEff/DEN_bTAgEff,
@@ -157,7 +158,7 @@ def someError(variables, var, var2=""): #
     
     return computeError(func, varContainer)
 
-'''
+
 # LUMI .........................................................................
  
 errorLumi = someError(variables, "lumi")
@@ -181,6 +182,6 @@ print("RESULT = %.2f pm %.1f (TOTAL)\n"
                         "                pm %.1f (bTag) \n"
                         "                pm %.1f (acep)" % 
     (value, error, errorLumi, errorData, errorNormBkg, errorBTag, errorAcep))
-'''
+
 
 
