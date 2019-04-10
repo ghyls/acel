@@ -657,10 +657,8 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     hTotal->Add(hBkg);
 
     // Add Sys erorrs and read the statistical ones
-    if (name == "MuonPt" || name == "tempXSec")
+    if (name == "MuonPt") // o si es tempXsec!
     {
-      if (name == "tempXSec") {std::cout << "peanut" << std::endl;}
-      if (name == "MuonPt") {std::cout << "potato" << std::endl;}
       // Now we read and store the stat errors
 
       AddNormUnc(hTotal, name, "qcd", 1, hBinSys);
