@@ -58,9 +58,9 @@ class Selector
     Float_t MET_px, MET_py;
     Float_t Muon_Iso[5];
     Float_t EventWeight;
-    Float_t MClepton_px[5], MClepton_py[5], MClepton_pz[5];
+    Float_t MClepton_px, MClepton_py, MClepton_pz;
     Float_t MCneutrino_px, MCneutrino_py, MCneutrino_pz;
-    Int_t MCleptonPDGid[5]; // 11 electrones, 13 muones, 15 taus  
+    Int_t MCleptonPDGid; // 11 electrones, 13 muones, 15 taus  
     // -------------------------------------------------------------------------
 
     // event variables
@@ -98,7 +98,7 @@ class Selector
     float Module(float x, float y, float z);
     float DR(TLorentzVector v1, TLorentzVector v2);
     float * ComputeNuPz(TLorentzVector nuAux, TLorentzVector leadMuon);
-    void DoJetPting();
+    void DoJetGoodPt();
     void CreateHistograms(TString prefix);
     void JetQuality();
     void ComputeBTagEff(float discr);
