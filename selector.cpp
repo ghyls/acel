@@ -17,12 +17,12 @@
 // TODO: aplicar cortes   DONE
 
 
-#define JET_MIN_PT 30 // 30
+#define JET_MIN_PT 40 // 30
 #define JET_MAX_PT 999
-#define DR_MAX_JETS 0.3
+#define DR_MAX_JETS 0.4
 #define MUON_MIN_PT 26.7 // 26.7
-#define BTAG_LIM 1.7
-#define MIN_TRUE_JETS 2
+#define BTAG_LIM 1
+#define MIN_TRUE_JETS 4
 #define MIN_B_JETS 1        // bJets >= MIN_B_JETS
 #define JET_MAX_ETA 2.4 //2.4
 #define MUON_MAX_ETA 2.4 //2.4
@@ -115,6 +115,7 @@ void Selector::CreateHistograms(TString prefix)
   TH1F* h21 = new TH1F(prefix + TString("_MassHadrT"), "", 10, 60, 300);
   TH1F* h22 = new TH1F(prefix + TString("_MassLeptT"), "", 10, 60, 300);
   TH1F* h23 = new TH1F(prefix + TString("_MassBestT"), "", 10, 60, 300);
+  TH1F* h24 = new TH1F(prefix + TString("_evtWeight"), "", 30, 0, 0.35);
 
 
   histograms.push_back(h1); 
@@ -140,6 +141,7 @@ void Selector::CreateHistograms(TString prefix)
   histograms.push_back(h21); 
   histograms.push_back(h22); 
   histograms.push_back(h23); 
+  histograms.push_back(h24); 
 }
 
 float Selector::Module(float x, float y, float z)
@@ -336,14 +338,14 @@ void Selector::ComputeBTagEff(float discr)
   }
 }
 
-void Selector::DoJetPting()
+void Selector::DoJetGoodPt()
 {
   std::fill_n(jetHasGoodPtEta, 20, false);
   for (int j = 0; j < NJet; j++)
   {
     jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
     //std::cout << jet.Pt() << std::endl;
-    if (jet.Pt() >= JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
+    if (jet.Pt() >= JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA)
     {
       jetHasGoodPtEta[j] = true;
     }
@@ -394,7 +396,7 @@ void Selector::PrintBTagEffData()
     for (int i = 0; i < numEvents; i++)
     {
       tree->GetEntry(i);
-      DoJetPting();
+      DoJetGoodPt();
       JetQuality();
       DoBTagging(dis);
       ComputeBTagEff(dis);
@@ -501,6 +503,7 @@ void Selector::Loop()
 
   int tmp = 0;
   ttbarGen = 36941;
+  //ttbarGen = 0;
   ttbarReco = 0;
 
     if (process == "ttbar")
@@ -514,17 +517,16 @@ void Selector::Loop()
 
     if (process == "data") {EventWeight = 1;}
 
-
     // compute TMass from MC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (process == "ttbar" && MCneutrino_px != 0)
     {
       // leptonic W ............................................................
-      Float_t muonP = Module(MClepton_px[0], MClepton_py[0], MClepton_pz[0]);
+      Float_t muonP = Module(MClepton_px, MClepton_py, MClepton_pz);
       Float_t muonE = TMath::Power(0.1056*0.1056 + muonP*muonP, 0.5);
       Float_t nuP = Module(MCneutrino_px, MCneutrino_py, MCneutrino_pz);
 
 
-      muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], muonE);
+      muon.SetPxPyPzE(MClepton_px, MClepton_py, MClepton_pz, muonE);
       nu.SetPxPyPzE(MCneutrino_px, MCneutrino_py, MCneutrino_pz, nuP);
       GetHisto("MCMassLeptW")->Fill((muon + nu).M(), EventWeight);
       
@@ -561,43 +563,55 @@ void Selector::Loop()
 
 
     // jet Pting >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    //bool jetHasGoodPtEta[20]; std::fill_n(jetHasGoodPtEta, 20, false);
-    //for (int j = 0; j < NJet; j++)
-    //{
-    //  jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
-    //  
-    //  if (jet.Pt() >= JET_MIN_PT && jet.Eta() <= JET_MAX_ETA)
-    //  {
-    //    jetHasGoodPtEta[j] = true;
-    //  }
-    //}
-    DoJetPting();
+    DoJetGoodPt();
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
     // jet quality >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    //int NTrueJets = 0;
-    //bool jetIsGood[20]; std::fill_n(jetIsGood, 20, false);
-    //for (int j = 0; j < NJet; j++)
-    //{
-    //  if (Jet_ID[j] && jetHasGoodPtEta[j]) {NTrueJets++; jetIsGood[j] = true;}
-    //}
     JetQuality();
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
     // b tagging >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    //int bJets = 0;
-    //bool jetIsB[20]; std::fill_n(jetIsB, 20, false);
-    //for (int j = 0; j < NJet; j++)
-    //{
-    //  if (Jet_btag[j] >= BTAG_LIM)
-    //  { // si es bTag
-    //    bJets ++;
-    //    jetIsB[j] = true;
-    //  }
-    //}
     DoBTagging(BTAG_LIM);
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if (process == "ttbar" && TMath::Abs(MCleptonPDGid) == 13)
+    {
+      muon.SetPxPyPzE(MClepton_px, MClepton_py, MClepton_pz, INFINITY);
+
+
+      if (muon.Pt() >= MUON_MIN_PT && abs(muon.Eta()) <= MUON_MAX_ETA)
+      {
+        //std::cout << muon.Eta() << std::endl;
+        
+        jet.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py,
+                          MChadronicWDecayQuark_pz, 0);
+        jet2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, 
+                          MChadronicWDecayQuarkBar_pz, 0);
+        b.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, 
+                      MCleptonicBottom_pz, 0);
+        b2.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, 
+                      MChadronicBottom_pz, 0);
+
+        int GoodMCJets = 0;
+        int GoodMCbJets = 0;
+
+        if (jet.Pt() >= JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;}
+        if (jet2.Pt() >= JET_MIN_PT && abs(jet2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;} 
+        if (b.Pt() >= JET_MIN_PT && abs(b.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
+        if (b2.Pt() >= JET_MIN_PT && abs(b2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
+
+        //if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
+        //    MCneutrino_px != 0 && MCleptonicBottom_px != 0)
+
+        if (GoodMCJets >= MIN_TRUE_JETS && GoodMCbJets >= MIN_B_JETS)
+        {
+          ttbarReco ++;
+        }
+      }
+    }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     Int_t NIsoMuon = 0;
@@ -647,23 +661,27 @@ void Selector::Loop()
     if (process == "ttbar")
     {
       for (int j = 0; j < NJet; j++)
-      {  
+      {
         GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
-      }      
-
+      }
       ComputeBTagEff(BTAG_LIM);
     }
+    //if (process != "data") std::cout << process << EventWeight << std::endl;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    // weight fixing >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if (bJets == 1) {EventWeight = EventWeight * 0.9;}
+    if (bJets > 1) {EventWeight = EventWeight * pow(0.92736, bJets);}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     //if (NMuon != 1 && NIsoMuon == 1) {
     //  std::cout <<"go fuck yourself" << std::endl;} 
 
 
     // trigger eff >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if (process == "ttbar" && TMath::Abs(MCleptonPDGid[0]) == 13)
+    if (process == "ttbar" && TMath::Abs(MCleptonPDGid) == 13)
     {
-      muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
+      muon.SetPxPyPzE(MClepton_px, MClepton_py, MClepton_pz, 666);
 
       if (muon.Pt() > 0)
       {
@@ -678,44 +696,7 @@ void Selector::Loop()
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-    // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if (process == "ttbar" && TMath::Abs(MCleptonPDGid[0]) == 13)
-    {
-      muon.SetPxPyPzE(MClepton_px[0], MClepton_py[0], MClepton_pz[0], 666);
-
-
-      if (muon.Pt() >= MUON_MIN_PT && abs(muon.Eta()) <= MUON_MAX_ETA)
-      {
-        //std::cout << muon.Eta() << std::endl;
-        
-        jet.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py,
-                          MChadronicWDecayQuark_pz, 0);
-        jet2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, 
-                          MChadronicWDecayQuarkBar_pz, 0);
-        b.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, 
-                      MCleptonicBottom_pz, 0);
-        b2.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, 
-                      MChadronicBottom_pz, 0);
-
-        int GoodMCJets = 0;
-        int GoodMCbJets = 0;
-
-        if (jet.Pt() >= JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;}
-        if (jet2.Pt() >= JET_MIN_PT && abs(jet2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++;} 
-        if (b.Pt() >= JET_MIN_PT && abs(b.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
-        if (b2.Pt() >= JET_MIN_PT && abs(b2.Eta()) <= JET_MAX_ETA) {GoodMCJets ++; GoodMCbJets ++;}
-
-        tmp++;
-        ttbarReco ++;
-        //if (MChadronicBottom_px != 0 && MChadronicWDecayQuark_px != 0 &&
-        //    MCneutrino_px != 0 && MCleptonicBottom_px != 0)
-        if (GoodMCJets >= MIN_TRUE_JETS && GoodMCbJets >= MIN_B_JETS)
-        {
-          //std::cout << "GO FUCK YOURSELF!!!" << std::endl;
-        }
-      }
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
 
 
     // =========================================================================
@@ -733,7 +714,7 @@ void Selector::Loop()
 
     if (triggerIsoMu24) 
     {
-      if (leadMuon.Pt() >= MUON_MIN_PT)
+      if (leadMuon.Pt() >= MUON_MIN_PT && abs(leadMuon.Eta()) <= MUON_MAX_ETA)
       {
         // compute TMass from Data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         if (NTrueJets >= 2 && bJets >= 1) 
@@ -885,6 +866,8 @@ void Selector::Loop()
           { 
             GetHisto("Acep_obs")->Fill(0.0, EventWeight);
             GetHisto("MuonPt")->Fill(leadMuon.Pt(), EventWeight); 
+            if (process == "ttbar") GetHisto("evtWeight")->Fill(EventWeight); 
+            
             //GetHisto("MuonPt")->Fill(leadMuon.Pt(), weight); 
             GetHisto("TempXSec")->Fill(1., EventWeight); 
           }  
