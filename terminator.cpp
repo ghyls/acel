@@ -43,7 +43,7 @@ void terminator()
 
 
   std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, \
-                              kAzure-8, kOrange+1, kRed+1};
+                              kPink+7, kOrange+1, kRed-6};
 
   MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
   sampleType= {"bkg", "bkg", "bkg", "bkg", "bkg"};
@@ -53,7 +53,7 @@ void terminator()
 
     plot = new Plotter(MCsamples, pathToFiles, "data");
     std::vector<TString> histos;
-    //plot.SetColors(colors);
+    plot->SetColors(colors);
 
     if(rank==RANKS[0])
     {
@@ -70,6 +70,14 @@ void terminator()
       plot->SetTitles("", "muonPt", "Events", "muonPt");
       plot->SetLegendPos(0.76, 0.6, 0.94, 0.88);
       plot->Stack("MuonPt", "", true, "");
+
+      plot->SetTitles("", "TempXSec", "Events", "TempXSec");
+      plot->SetLegendPos(0.76, 0.6, 0.94, 0.88);
+      plot->Stack("TempXSec", "", true, "");
+
+      plot->SetTitles("", "EvWeight", "Events", "EvWeight");
+      plot->SetLegendPos(0.76, 0.6, 0.94, 0.88);
+      plot->Stack("evtWeight", "", true, "");
 
       plot->SetTitles("MuMuMass", "MMMass", "Events", "muMuMass");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
