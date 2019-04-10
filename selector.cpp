@@ -17,7 +17,7 @@
 // TODO: aplicar cortes   DONE
 
 
-#define JET_MIN_PT 40 // 30
+#define JET_MIN_PT 30 // 30
 #define JET_MAX_PT 999
 #define DR_MAX_JETS 0.4
 #define MUON_MIN_PT 26.7 // 26.7
@@ -579,6 +579,8 @@ void Selector::Loop()
     // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (process == "ttbar" && TMath::Abs(MCleptonPDGid) == 13)
     {
+      // aceptancia = ttbarReco / ttbarGen, con ttbarGen = 36941;
+
       muon.SetPxPyPzE(MClepton_px, MClepton_py, MClepton_pz, INFINITY);
 
 
@@ -586,14 +588,16 @@ void Selector::Loop()
       {
         //std::cout << muon.Eta() << std::endl;
         
+        float E = -10000000.0;
+
         jet.SetPxPyPzE(MChadronicWDecayQuark_px, MChadronicWDecayQuark_py,
-                          MChadronicWDecayQuark_pz, 0);
+                          MChadronicWDecayQuark_pz, E);
         jet2.SetPxPyPzE(MChadronicWDecayQuarkBar_px, MChadronicWDecayQuarkBar_py, 
-                          MChadronicWDecayQuarkBar_pz, 0);
+                          MChadronicWDecayQuarkBar_pz, E);
         b.SetPxPyPzE(MCleptonicBottom_px, MCleptonicBottom_py, 
-                      MCleptonicBottom_pz, 0);
+                      MCleptonicBottom_pz, E);
         b2.SetPxPyPzE(MChadronicBottom_px, MChadronicBottom_py, 
-                      MChadronicBottom_pz, 0);
+                      MChadronicBottom_pz, E);
 
         int GoodMCJets = 0;
         int GoodMCbJets = 0;
@@ -670,8 +674,8 @@ void Selector::Loop()
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     // weight fixing >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if (bJets == 1) {EventWeight = EventWeight * 0.9;}
-    if (bJets > 1) {EventWeight = EventWeight * pow(0.92736, bJets);}
+    if (MIN_B_JETS == 1) {EventWeight = EventWeight * 0.9;}
+    if (MIN_B_JETS == 2) {EventWeight = EventWeight * 0.86;}
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     //if (NMuon != 1 && NIsoMuon == 1) {
@@ -891,7 +895,8 @@ void Selector::Loop()
     ClearVariables();
   }
 
-  float BR = (0.134 + 0.71 * 0.1739) * 0.665 * 2;
+  float BR = 0.134 * 0.665 * 2;
+  //std::cout << BR << std::endl;
   acep = ttbarReco/(ttbarGen * BR);
   //std::cout << "god :: "<< acep << std::endl;
   //std::cout << "  TMP :: "<< tmp << std::endl;
