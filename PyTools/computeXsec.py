@@ -27,7 +27,10 @@ RAW_acep = M[2]         # los que veo       | los totales
 
 totalData = M[3][0]
 totalBkg = M[3][1]
+
 normBkg = M[4][0]
+statBkg = M[4][1]
+AcepCentral = M[5][0]
 
 # designaremos con NUM al numerador (ej. RAW_bTagEff[0]) y con DEN al
 # denominador (ej. RAW_bTagEff[1]) del cociente que de vuelve cada valor (ej. la
@@ -39,6 +42,7 @@ NombTAgEff = RAW_bTAgEff[0]/RAW_bTAgEff[1]
 
 NUM_trigEff = RAW_trigEff[0]
 DEN_trigEff = RAW_trigEff[1]
+NomTrigEff = RAW_trigEff[0]/RAW_trigEff[1]
 
 NUM_acep = RAW_acep[0]
 DEN_acep = RAW_acep[1]
@@ -48,6 +52,7 @@ DEN_acep = RAW_acep[1]
 NUM_bTAgEff = sp.Symbol("NUM_bTAgEff")
 DEN_bTAgEff = sp.Symbol("DEN_bTAgEff")
 bTAgEff = sp.Symbol("bTAgEff")
+trigEff = sp.Symbol("trigEff")
 
 NUM_trigEff = sp.Symbol("NUM_trigEff")
 DEN_trigEff = sp.Symbol("DEN_trigEff")
@@ -69,15 +74,14 @@ lumi = sp.Symbol("lumi")
 '''[DEN_bTAgEff, Data(RAW_bTAgEff[1], RAW_bTAgEff[1]**0.5)],'''
 variables =    [
                 [bTAgEff, Data(NombTAgEff, NombTAgEff*0.1)],
-                [NUM_trigEff, Data(RAW_trigEff[0], RAW_trigEff[0]**0.5)],
-                [DEN_trigEff, Data(RAW_trigEff[1], RAW_trigEff[1]**0.5)],
+                [trigEff, Data(NomTrigEff, (1-NomTrigEff)/2)],
                 [NUM_acep, Data(RAW_acep[0], RAW_acep[0]**0.5)],
                 [DEN_acep, Data(RAW_acep[1], RAW_acep[1]**0.5)],
                 [N, Data(totalData, totalData**0.5)],
                 [B, Data(totalBkg, normBkg)],      # bkg Norm Unc
                 [muonEff, Data(0.99, 0.01)],
                 [lumi, Data(50, 5)]]
-
+                # take care before you edit me :P
 
 
 # que son las incertidumbres de normalizacion? 
@@ -98,7 +102,6 @@ print(BRTTbarToMu)
 #        "treff", NUM_trigEff/DEN_trigEff)
 
 bTagEff = bTAgEff   # en MC
-trigEff = NUM_trigEff / DEN_trigEff
 acep = NUM_acep / (DEN_acep*BRTTbarToMu)
 
 
@@ -109,7 +112,7 @@ acep = NUM_acep / (DEN_acep*BRTTbarToMu)
 # definimos la formula que devolverá la Xsec >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 func = (N-B) / (lumi * acep * trigEff * muonEff * bTagEff * BRTTbarToMu)
 
-print("acep, ", RAW_acep[0]/RAW_acep[1]/BRTTbarToMu)
+print("acep, ", AcepCentral)
 print("bteff, ", NombTAgEff)
 print("tff, ", RAW_trigEff[0]/RAW_trigEff[1])
 print("nSignal, ", totalData-totalBkg)
@@ -143,7 +146,12 @@ def computeValue(func, variables):
     return func
 
 error = computeError(func, variables)
-value = computeValue(func, variables)
+
+# We redefine func, since we don't calculate the error of the acceptance with
+# the formula that gives the central value.
+
+func2 = (N-B) / (lumi * AcepCentral * trigEff * muonEff * bTagEff * BRTTbarToMu)
+value = computeValue(func2, variables)
 
 # REST OF ERRORS ===============================================================
 from copy import deepcopy
@@ -160,7 +168,6 @@ def someError(variables, var, var2=""): #
 
 
 # LUMI .........................................................................
- 
 errorLumi = someError(variables, "lumi")
 
 # DATA_STAT ....................................................................
@@ -168,6 +175,7 @@ errorData = someError(variables, "N")
 
 # BKG_NORM .....................................................................
 errorNormBkg = someError(variables, "B")
+errorStatBkg = someError(variables, "Bstat")
 
 # bTag .........................................................................
 errorBTag = someError(variables, "bTAgEff")
@@ -175,13 +183,19 @@ errorBTag = someError(variables, "bTAgEff")
 # acep .........................................................................
 errorAcep = someError(variables, "NUM_acep", "DEN_acep")
 
+# trig .........................................................................
+errorTrigg = someError(variables, "trigEff")
+
+
 print("RESULT = %.2f pm %.1f (TOTAL)\n"
                         "                pm %.1f (lumi)\n"
                         "                pm %.1f (data stat)\n"                            
                         "                pm %.1f (bkg norm) \n"
                         "                pm %.1f (bTag) \n"
+                        "                pm %.1f (trigger) \n"
                         "                pm %.1f (acep)" % 
-    (value, error, errorLumi, errorData, errorNormBkg, errorBTag, errorAcep))
+    (value, error, errorLumi, errorData, errorNormBkg, errorBTag,
+            errorTrigg, errorAcep))
 
 
 

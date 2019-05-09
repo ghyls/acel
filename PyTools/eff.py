@@ -10,15 +10,15 @@ outputName = "eff.png"
 x = np.linspace(10, 60, len(M))
 y = [elem for elem in M] # eficiencia
 
-xlabel = r"$p_T$ $min$ (GeV)"
+xlabel = r"$p_{T, min}$ (GeV)"
 ylabel = r"Eficiencia"
-title = u"Eficiencia en función del corte en $p_T$"
+title = u"Eficiencia  del trigger en función del corte en el $p_T$ del muón"
 
 eff = Plotter((8, 5))
 eff.createAxis(111)
 
-eff.addSubplot(x, y, 0, color="crimson", dataLabel="eficiencia")
-eff.drawVerticalLine(26.6667, u"$p_T$ = 26.7 GeV")
+eff.addSubplot(x, y, 0, color="crimson", dataLabel=r"$Trigg_{eff}$")
+eff.drawVerticalLine(26, u"$p_T$ = 26 GeV")
 
 
 eff.setProperties(title, xlabel=xlabel, ylabel=ylabel, legLoc=4, xlim=[10, 60])
@@ -55,5 +55,5 @@ xlabel = "bTAgEff"
 ylabel = "missTAGEff"
 plot.setProperties(title, xlabel=xlabel, ylabel=ylabel, legLoc=2)
 
-
+#plot.showGraph()
 plot.saveFig("bTagEffvsG")

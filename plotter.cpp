@@ -160,6 +160,9 @@ void Plotter::PrintEvents(TString name)
   }
 
 }
+
+
+
 void Plotter::PrintXSecData()
 // prints every ingredient for calculating the Xsec with its uncertainity, so we
 // can import it from python, an then propagate the errors. Also prints in the
@@ -169,23 +172,42 @@ void Plotter::PrintXSecData()
   float totalData = 0;
   float totalTTbar = 0;
   float totalBkgNormUnc = 0;
+  float totalBkgStatUnc = 0;
   for (unsigned int i = 0; i < listOfSelectors.size(); i++)
   {
     TH1F* h = listOfSelectors[i]->GetHisto("TempXSec");
 
+    // fill totalMC
     totalMC +=h->Integral();
-    if (listOfSelectors[i]->process == "qcd") totalBkgNormUnc += h->Integral() * 1; 
-    if (listOfSelectors[i]->process == "wjets") totalBkgNormUnc += h->Integral() * 0.5; 
-    if (listOfSelectors[i]->process == "ww") totalBkgNormUnc += h->Integral() * 0.5; 
-    if (listOfSelectors[i]->process == "wz") totalBkgNormUnc += h->Integral() * 0.5; 
-    if (listOfSelectors[i]->process == "zz") totalBkgNormUnc += h->Integral() * 0.5; 
-    if (listOfSelectors[i]->process == "dy") totalBkgNormUnc += h->Integral() * 0.15; 
-    if (listOfSelectors[i]->process == "single_top") totalBkgNormUnc += h->Integral() * 0.3;     
+    
+    // fill Stat uncertainity (only for bKg)
+    if (listOfSelectors[i]->process != "ttbar"){
+      totalBkgStatUnc += h->GetBinError(1);
+    }
+
+    // fill Norm Unc ( only for Bkg)                             Python Style xd
+    if (listOfSelectors[i]->process == "qcd")                                  {
+      totalBkgNormUnc += h->Integral() * 1                                    ;} 
+    if (listOfSelectors[i]->process == "wjets")                                {
+      totalBkgNormUnc += h->Integral() * 0.5                                  ;} 
+    if (listOfSelectors[i]->process == "ww")                                   {
+      totalBkgNormUnc += h->Integral() * 0.5                                  ;} 
+    if (listOfSelectors[i]->process == "wz")                                   {
+      totalBkgNormUnc += h->Integral() * 0.5                                  ;} 
+    if (listOfSelectors[i]->process == "zz")                                   {
+      totalBkgNormUnc += h->Integral() * 0.5                                  ;} 
+    if (listOfSelectors[i]->process == "dy")                                   {
+      totalBkgNormUnc += h->Integral() * 0.15                                 ;} 
+    if (listOfSelectors[i]->process == "single_top")                           {
+      totalBkgNormUnc += h->Integral() * 0.3                                  ;}    
+
+    // fill ttbar histo (sigmal) 
     if (listOfSelectors[i]->process == "ttbar")
     {
       totalTTbar += h->Integral();
     }
   }
+  std::cout << totalBkgStatUnc << std::endl;
 
   TH1F* h = dataSelector->GetHisto("TempXSec");
   totalData += h->Integral();
@@ -207,7 +229,7 @@ void Plotter::PrintXSecData()
   std::vector<double> integralsTEff = GetTriggerEff();
   std::vector<double> integralsAcep = GetAcceptance();
 
-  float bTagEff = integralsBTag[0]/integralsBTag[1] * 0.9;  // God Knows
+  float bTagEff = integralsBTag[0]/integralsBTag[1];
   float triggEff = integralsTEff[0]/integralsTEff[1];
   float muonEff = 0.99;   // pm 0.01
   float lumi = 50;        // pb, pm 10%
@@ -231,13 +253,19 @@ void Plotter::PrintXSecData()
   std::ofstream f;
   f.open("./PyTools/xsec.dat");
   f << "# this is an auto-generated file. You better don't edit it \n";
-  f << "# Btag, Teff, Acep, [Ndat, Nbkg]\n" << std::endl;
+  f << "# [BTag0    BTag1]" << std::endl;
+  f << "# [Teff0    Teff1]" << std::endl;
+  f << "# [Acep0    Acep1]" << std::endl;
+  f << "# [Ndata    Nbkg ]" << std::endl;
+  f << "# [bkgNormUnc    bkgSystUnc]\n" << std::endl;
+  f << "# [AcepCentral   0]\n" << std::endl;
 
   f << integralsBTag[0] << ' ' << integralsBTag[1] << std::endl;
   f << integralsTEff[0] << ' ' << integralsTEff[1] << std::endl;
   f << integralsAcep[0] << ' ' << integralsAcep[1] << std::endl;
   f << totalData << ' ' << totalMC - totalTTbar << std::endl;
-  f << totalBkgNormUnc << " 0" << std::endl;
+  f << totalBkgNormUnc << " " << totalBkgStatUnc << std::endl;
+  f << acep2 << " 0" << std::endl;
   f.close();
 }
 
@@ -262,11 +290,10 @@ std::vector<double> Plotter::GetTriggerEff()
 
   //listOfSelectors.push_back(bkgSelector); 
 
-
   Int_t nbins = h1->GetNbinsX();
   std::vector <float> eff = {};
   
-  for (int i = 0; i < nbins; i++)
+  for (int i = 1; i < nbins+1; i++)
   {
     eff.push_back(h1->Integral(i, nbins)/h2->Integral(i, nbins));
     //std::cout << eff[i] << std::endl; 
@@ -330,7 +357,7 @@ std::vector<double> Plotter::GetBTagEff()
     {
       h1 = listOfSelectors[i]->GetHisto("BJet_Pt");
       h2 = listOfSelectors[i]->GetHisto("Jets_GEN_Pt");
-      num = listOfSelectors[i]->bIdentAndMatched;
+      num = listOfSelectors[i]->bIdentAndMatched * 0.9;
       den = listOfSelectors[i]->totalGenB;
     }
   }
@@ -511,7 +538,7 @@ void Plotter::PrintGaussianFit(TH1F * histo)
   TFitResultPtr fitData = histo->Fit(fit, "Q, N");
   Double_t p1 = fit->GetParameter(1);
   Double_t e1 = fit->GetParError(1);
-  //std::cout << p1 << " pm " << e1 << std::endl;
+  std::cout << p1 << " pm " << e1 << std::endl;
 }
 
 void Plotter::AddNormUnc(TH1F * hTarget, TString name, TString proc, 
@@ -565,6 +592,11 @@ void Plotter::AddToLegend(TLegend * leg, TH1F * h, TString name, float Integral)
       leg->AddEntry(h, name + Form(": %1.0f", Integral), "p");
     }
   }
+  else if (Integral > 0)
+  {
+    leg->AddEntry(h, name + ": < 1", "f");
+  }
+  
 }
 
 void Plotter::Stack(TString name, TString process, bool drawRatios, 
@@ -614,7 +646,6 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   TH1F* hBkg;
   TH1F* hTotal;
   float hBinSys[listOfSelectors.size()];
-
   std::fill_n(hBinSys, listOfSelectors.size(), 0);
   if (process == "" && data != "") //fill hBkg && hSignal
   {
@@ -685,7 +716,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     // create an empty auxiliar histo for the VV process
     TH1F* hVV = (TH1F*)hTotal->Clone("hVV"); 
     hVV->SetFillColor(kBlack);
-    hVV->SetLineColor(kBlack);
+    //hVV->SetLineColor(kBlack);
     hVV->SetLineWidth(0);
 
     for (int j = 1; j < hVV->GetNbinsX() + 1; j++)
@@ -777,8 +808,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   if (!drawRatios)
   {
     pad1->SetLeftMargin(0.12);
-    pad1->SetRightMargin(0.12);
-
+    pad1->SetRightMargin(0.06);
   }
 
 
@@ -794,22 +824,45 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     texLumi->SetY(0.93); // 89
     texLumi->SetTextSize(0.04);
     texLumi->SetTextSizePixels(10); // 22
+    if (!drawRatios)
+    {
+    texLumi->SetX(0.68); // 15
+    texLumi->SetY(0.92); // 89   
+    texLumi->SetTextSize(0.032);
+    }
     texLumi->Draw("same");
 
-    TLatex* texCuts = new TLatex(0, 0, 
-                          Form("1 isolated Muon with pt > 26"));
-    texCuts->SetTextAlign(12);
-    texCuts->SetNDC(1);
-    texCuts->SetX(0.13); // 15
-    texCuts->SetY(0.93); // 89
-    texCuts->SetTextSize(0.04);
-    texCuts->SetTextSizePixels(10); // 22
-    texCuts->Draw("same");
+    //TLatex* texCuts = new TLatex(0, 0, 
+    //                      Form("1 isolated Muon with pt > 26"));
+    //texCuts->SetTextAlign(12);
+    //texCuts->SetNDC(1);
+    //texCuts->SetX(0.13); // 15
+    //texCuts->SetY(0.93); // 89
+    //texCuts->SetTextSize(0.04);
+    //texCuts->SetTextSizePixels(10); // 22
+    //texCuts->Draw("same");
 
     hTotal->SetFillStyle(3444);
     hTotal->SetFillColor(kGray+2);
     hTotal->Draw("same,e2");
   }
+
+  if (scale != 999 && process == "")
+  {
+    //TH1F* hScaled;
+    TH1F *hScaled = (TH1F*)hSignal->Clone("hScaled");
+    std::cout << "potato" << std::endl;
+    //hScaled->Add(hSignal, 6);
+    hScaled->Scale(scale);
+    hScaled->SetFillStyle(3244);
+    hScaled->SetLineColor(kBlack);
+    hScaled->SetFillColor(kBlack);
+    TString label = TString("SR * ") + (TString)std::to_string(scale);
+    leg->AddEntry(hScaled, label , "f"); 
+    hScaled->Draw("same, hist");
+  }
+
+
 
   if (title  != "") {hs->SetTitle(title);}
   if (ytitle != "") {hs->GetYaxis()->SetTitle(ytitle);}

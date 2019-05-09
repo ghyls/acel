@@ -26,6 +26,9 @@ class Selector
     float ttbarGen;
     float ttbarReco;
 
+    int tmp0 = 0;
+    int tmp1 = 0;
+
     // branches ----------------------------------------------------------------
     Int_t NMuon;
     Int_t NJet;

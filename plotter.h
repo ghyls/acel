@@ -25,6 +25,7 @@ class Plotter
         TString ytitle = "";
         TString title = ""; 
         TString outName = "out"; 
+        int scale = 999;
         float BR = 0.134 * 0.665 * 2;
     
         float nEventsVV = 0;

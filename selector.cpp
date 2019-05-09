@@ -19,8 +19,8 @@
 
 #define JET_MIN_PT 30 // 30
 #define JET_MAX_PT 999
-#define DR_MAX_JETS 0.4
-#define MUON_MIN_PT 26.7 // 26.7
+#define DR_MAX_JETS 0.3
+#define MUON_MIN_PT 26 // 26
 #define BTAG_LIM 1
 #define MIN_TRUE_JETS 4
 #define MIN_B_JETS 1        // bJets >= MIN_B_JETS
@@ -103,7 +103,7 @@ void Selector::CreateHistograms(TString prefix)
   TH1F* h10 = new TH1F(prefix + TString("_JetBTaggedRECO"), "", 11, -1, 10);
   TH1F* h11 = new TH1F(prefix + TString("_JetMatchedRECO"), "", 11, -1, 10);
   TH1F* h12 = new TH1F(prefix + TString("_Jets_GEN_Pt"), "", 20, 20, 160);
-  TH1F* h13 = new TH1F(prefix + TString("_TempXSec"), "", 20, 0, 2);
+  TH1F* h13 = new TH1F(prefix + TString("_TempXSec"), "", 1, 0, 2);
 
   TH1F* h14 = new TH1F(prefix + TString("_MCMassHadrW"), "", 100, 60, 100);
   TH1F* h15 = new TH1F(prefix + TString("_MCMassLeptW"), "", 100, 60, 100);
@@ -301,7 +301,8 @@ void Selector::ComputeBTagEff(float discr)
             totalGenB ++;
             if (Jet_btag[j] >= discr) bIdentAndMatched ++;
           }
-          //else std::cout << "multiple hadr matches!" << std::endl;
+          else {std::cout << "multiple hadr matches!" << std::endl;
+                tmp0 ++;}
 
           auxDRHadr = DRHadr;
         }            
@@ -329,7 +330,8 @@ void Selector::ComputeBTagEff(float discr)
             totalGenB ++;
             if (Jet_btag[j] >= discr) bIdentAndMatched ++;
           }
-          //else std::cout << "multiple Lept matches!" << std::endl;
+          else {std::cout << "multiple Lept matches!" << std::endl;
+                tmp1 ++;}
 
           auxDRLept = DRLept;
         }            
@@ -501,7 +503,7 @@ void Selector::Loop()
                 " events." << std::endl;
 
 
-  int tmp = 0;
+
   ttbarGen = 36941;
   //ttbarGen = 0;
   ttbarReco = 0;
@@ -662,13 +664,13 @@ void Selector::Loop()
 
     // BTag Eff >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     //if (NTrueJets > 0  && process == "ttbar")
-    if (process == "ttbar")
+    if (process != "data" && process != "qcd")
     {
       for (int j = 0; j < NJet; j++)
       {
         GetHisto("Jet_btag")->Fill(Jet_btag[j], EventWeight);
       }
-      ComputeBTagEff(BTAG_LIM);
+      if (process == "ttbar") {ComputeBTagEff(BTAG_LIM);}
     }
     //if (process != "data") std::cout << process << EventWeight << std::endl;
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -762,7 +764,7 @@ void Selector::Loop()
             float auxM3j = (jet + hadrJet1 + hadrJet2).M();
 
             if(abs(auxM3j - TopMassTeo) < abs(M3j - TopMassTeo) &&
-                abs(auxM3j - TopMassTeo) < 80)
+                abs(auxM3j - TopMassTeo) < 90)
             {
               M3j = auxM3j;
             }
@@ -820,11 +822,11 @@ void Selector::Loop()
             auxMLpTop[1] = (jet + leadMuon + nuAux[1]).M();
 
             if(abs(auxMLpTop[0] - TopMassTeo) < abs(MLpTop[0] - TopMassTeo) &&
-                abs(auxMLpTop[0] - TopMassTeo) < 90){
+                abs(auxMLpTop[0] - TopMassTeo) < 100){
               MLpTop[0] = auxMLpTop[0];
             }
             if(abs(auxMLpTop[1] - TopMassTeo) < abs(MLpTop[1] - TopMassTeo) &&
-                abs(auxMLpTop[1] - TopMassTeo) < 90){
+                abs(auxMLpTop[1] - TopMassTeo) < 100){
               MLpTop[1] = auxMLpTop[1];
             }
           }
@@ -903,6 +905,8 @@ void Selector::Loop()
   if (process=="ttbar")
   {
     bTagEff = bIdentAndMatched/totalGenB;
+    std::cout << "hadr :: "<< tmp0 << std::endl;
+    std::cout << "lept :: "<< tmp1 << std::endl;
   }
 }
 

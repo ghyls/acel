@@ -126,7 +126,8 @@ Rango de valores:
     xsec -> entre 145 y 185
     la incertidumbre de xsec -> Entre el 15 y el 25 por ciento
 
-
+resolucioon numerica o en papel.
+mirar a ver si sale mejor con la positiva o con la negativa
 
 ¿Qué hago en el plot cuando tengo 0.algo eventos?
         - pones en la leyenda que tienes < 1

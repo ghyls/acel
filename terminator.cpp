@@ -42,8 +42,8 @@ void terminator()
   std::vector<std::string> sampleType;
 
 
-  std::vector<Int_t> colors = {kGray, kBlue-1, kTeal-1, kTeal+1, kTeal+4, \
-                              kPink+7, kOrange+1, kRed-6};
+  std::vector<Int_t> colors = {kGray, kBlue-1, kGreen-6, kTeal+4, kSpring+3, \
+                              kPink+8, kOrange+1, kRed-6};
 
   MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
   sampleType= {"bkg", "bkg", "bkg", "bkg", "bkg"};
@@ -58,12 +58,13 @@ void terminator()
     if(rank==RANKS[0])
     {
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->SetTitles("W Mass", "M_W", "Events", "leptWMass");
+      plot->SetTitles("W Mass", "M_W", "Events", "MCWMass");
       histos = {"MCMassHadrW", "MCMassLeptW"};
       plot->Stack("", "ttbar", false, "", histos, false);
 
+
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->SetTitles("T Mass", "M_T", "Events", "leptTMass");
+      plot->SetTitles("T Mass", "M_T", "Events", "MCTMass");
       histos = {"MCMassHadrT", "MCMassLeptT"};
       plot->Stack("", "ttbar", false, "", histos, false);
 
@@ -83,9 +84,11 @@ void terminator()
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->Stack("MuMuMass", "", true, "", {}, true);
 
+      plot->scale = 110;
       plot->SetTitles("Me_gusta_el_miso", "MIso", "Events", "muon_Iso");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->Stack("Muon_Iso", "", true, "", {}, false, 20000);
+      plot->scale = 999;
 
       
       plot->SetTitles("Hadr W mass", "HadrW", "Events", "dataHadrWMass");
@@ -133,11 +136,11 @@ void terminator()
       plot->plotWithRatio("ttbar", "BJet_Pt", "Jets_GEN_Pt", "RATIO", 0.3, 1.5, 
                           false);
 
-      plot->SetLegendPos(0.62, 0.65, 0.88, 0.88);
-      plot->SetTitles("","Jet_btag", "Events", "jet_btag");
-      plot->Stack("Jet_btag", "", false, "", {}, false, 600);
+      plot->SetLegendPos(0.67, 0.65, 0.88, 0.88);
+      plot->SetTitles("","Discriminator, g", "Jets / 0.1", "jet_btag");
+      plot->Stack("Jet_btag", "", false, "", {}, false, 650);
 
-      //plot->PrintEvents("MuonPt");
+      plot->PrintEvents("MuonPt");
       plot->PrintXSecData();
       
     }
