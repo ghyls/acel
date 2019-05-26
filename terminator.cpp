@@ -30,9 +30,9 @@ void terminator()
   //MPI_Comm_size(comm, &size);
   //MPI_Comm_rank(comm, &rank);
   
-  std::cout << "Hello from rank " << rank << '!' << std::endl;
-  if (rank==0) {
-    std::cout << "Running on " << size << " process(es)!\n" << std::endl;}
+  //std::cout << "Hello from rank " << rank << '!' << std::endl;
+  //if (rank==0) {
+  //  std::cout << "Running on " << size << " process(es)!\n" << std::endl;}
 
   std::string pathToFiles = "./practica/files/";
   std::string dataFile = "data";
@@ -44,7 +44,8 @@ void terminator()
 
   std::vector<Int_t> colors = {kGray, kBlue-1, kGreen-6, kTeal+4, kSpring+3, \
                               kPink+8, kOrange+1, kRed-6};
-
+  //std::vector<Int_t> colors = {kRed-7, kBlue-1, kGreen-6, kTeal+4, kSpring+3, \
+  //                            kPink+8, kOrange+1, kRed-6};
   MCsamples = {"qcd", "wjets", "ww", "wz", "zz", "dy", "single_top", "ttbar"};
   sampleType= {"bkg", "bkg", "bkg", "bkg", "bkg"};
   static Plotter * plot;
@@ -58,19 +59,44 @@ void terminator()
     if(rank==RANKS[0])
     {
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->SetTitles("W Mass", "M_W", "Events", "MCWMass");
-      histos = {"MCMassHadrW", "MCMassLeptW"};
-      plot->Stack("", "ttbar", false, "", histos, false);
-
+      plot->SetTitles("", "M_{W} (GeV), lept.", "Events / 0.4 GeV", "MCWMassL");
+      histos = {"MCMassLeptW"};
+      plot->Stack("", "ttbar", false, "", histos, 0);
 
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->SetTitles("T Mass", "M_T", "Events", "MCTMass");
-      histos = {"MCMassHadrT", "MCMassLeptT"};
+      plot->SetTitles("", "M_{W} (GeV), hadr.", "Events / 0.4 GeV", "MCWMassH");
+      histos = {"MCMassHadrW"};
+      plot->Stack("", "ttbar", false, "", histos, 0);
+
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{W} (GeV), hadr.", "Events", "MassHadrW");
+      histos = {"MassHadrW"};
       plot->Stack("", "ttbar", false, "", histos, false);
 
-      plot->SetTitles("", "muonPt", "Events", "muonPt");
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{T} (GeV), hadr.", "Events / 0.012 GeV", "MCTMassH");
+      histos = {"MCMassHadrT"};
+      plot->Stack("", "ttbar", false, "", histos, false);
+
+      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{T} (GeV), lept.", "Events / 0.012 GeV", "MCTMassL");
+      histos = {"MCMassLeptT"};
+      plot->Stack("", "ttbar", false, "", histos, false);
+
+
+      plot->SetTitles("", "P_{t, #mu}", "Events / 16 GeV", "muonPt");
       plot->SetLegendPos(0.76, 0.6, 0.94, 0.88);
       plot->Stack("MuonPt", "", true, "");
+
+      plot->scale =300;
+      plot->SetTitles("", "missing E_{T} (GeV)", "Events / 3 GeV", "met");
+      plot->SetLegendPos(0.71, 0.6, 0.94, 0.88);
+      plot->Stack("MET", "", true, "");
+      plot->scale = 999;
+
+      plot->SetTitles("", "Jet P_{T}", "Events / 6 GeV", "JetPt");
+      plot->SetLegendPos(0.73, 0.6, 0.94, 0.88);
+      plot->Stack("Jet_Pt", "", true, "", {}, 0);
 
       plot->SetTitles("", "TempXSec", "Events", "TempXSec");
       plot->SetLegendPos(0.76, 0.6, 0.94, 0.88);
@@ -85,30 +111,29 @@ void terminator()
       plot->Stack("MuMuMass", "", true, "", {}, true);
 
       plot->scale = 110;
-      plot->SetTitles("Me_gusta_el_miso", "MIso", "Events", "muon_Iso");
+      plot->SetTitles("", "Muon iso / Muon p_{T}", "Events", "muon_Iso");
       plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
       plot->Stack("Muon_Iso", "", true, "", {}, false, 20000);
       plot->scale = 999;
-
       
-      plot->SetTitles("Hadr W mass", "HadrW", "Events", "dataHadrWMass");
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{W} (GeV), hadr.", "Events / 9 GeV", "dataHadrWMass");
+      plot->SetLegendPos(0.76, 0.6, 0.9, 0.88);
       plot->Stack("MassHadrW", "", true, "gauss");
 
-      plot->SetTitles("lep W mass", "lepW", "Events", "datalepWMass");
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
-      plot->Stack("MassLeptW", "", true, "gauss");
+      plot->SetTitles("", "M_{W} transversa (GeV)", "Events / 10 GeV", "datalepWMass");
+      plot->SetLegendPos(0.76, 0.6, 0.9, 0.88);
+      plot->Stack("TransMassLeptW", "", true, "gauss");
 
-      plot->SetTitles("hadr T mass", "hadrT", "Events", "dataHadrTMass");
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{T} (GeV), hadr.", "Events / 24 GeV", "dataHadrTMass");
+      plot->SetLegendPos(0.76, 0.6, 0.9, 0.88);
       plot->Stack("MassHadrT", "", true, "gauss");
 
-      plot->SetTitles("Lept T mass", "LeptT", "Events", "dataLeptTMass");
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{T} (GeV), lept.", "Events / 24 GeV", "dataLeptTMass");
+      plot->SetLegendPos(0.76, 0.6, 0.9, 0.88);
       plot->Stack("MassLeptT", "", true, "gauss");   
 
-      plot->SetTitles("Best T mass", "BestT", "Events", "dataBestTMass");
-      plot->SetLegendPos(0.7, 0.6, 0.9, 0.88);
+      plot->SetTitles("", "M_{T} (GeV), best", "Events / 24 GeV", "dataBestTMass");
+      plot->SetLegendPos(0.76, 0.6, 0.9, 0.88);
       plot->Stack("MassBestT", "", true, "gauss");   
     }
 
