@@ -36,24 +36,45 @@ xM = np.array([elem[0] for elem in MT])
 yM = np.array([elem[1] for elem in MT])
 
 xlabel = r"discriminante"
-ylabel = r"BTag Eff"
+ylabel = r"Eficiencia"
 title = u"bTag eff en función del corte en $g$"
+title = u""
 
-plot = Plotter((11, 5))
+plot = Plotter((13, 5))
 plot.createAxis(121)
 
+
+
+#plot.addSubplot(xM, yM, 0, color="crimson", dataLabel="miss TAG")
+#plot.addSubplot(xB, yB, 0, color="b", dataLabel="b TAG")
+
 plot.addSubplot(xM, yM, 0, color="crimson", dataLabel="miss TAG")
-plot.addSubplot(xB, yB, 0, color="b", dataLabel="b TAG")
+
+plot.drawVerticalLine(1, "g = 1, loose", "red")
+plot.drawVerticalLine(3.3, "g = 3.3, normal", "green")
+plot.drawVerticalLine(4.3, "g = 4.3, tight", "blue")
 
 plot.setProperties(title, xlabel=xlabel, ylabel=ylabel, legLoc=1)
 
 plot.createAxis(122)
-plot.addSubplot(xB, yB/yM, 0, color="darkolivegreen", dataLabel="data")
+#plot.addSubplot(yM, yB, 0, color="darkolivegreen", dataLabel="bTag Eff / missTag Eff")
+plot.addSubplot(xM, yB/yM, 0, color="darkolivegreen", dataLabel="bTag Eff / missTag Eff")
 
-title = "bTag Eff / missTAG"
-xlabel = "bTAgEff"
-ylabel = "missTAGEff"
+
+
+title = "bTag Eff / missTag Eff"
+title = ""
+#xlabel = "missTagEff"
+xlabel = "discriminante"
+ylabel = "bTagEff"
+ylabel = ""
 plot.setProperties(title, xlabel=xlabel, ylabel=ylabel, legLoc=2)
 
 #plot.showGraph()
 plot.saveFig("bTagEffvsG")
+
+
+
+# t -> g = 1
+# normal g = 3.3
+# loose - 4.4
