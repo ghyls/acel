@@ -183,6 +183,8 @@ void Plotter::PrintXSecData()
     // fill Stat uncertainity (only for bKg)
     if (listOfSelectors[i]->process != "ttbar"){
       totalBkgStatUnc += h->GetBinError(1);
+      //std::cout <<"bkg unc stat" << totalBkgStatUnc << std::endl;
+      //std::cout <<listOfSelectors[i]->process << h->GetBinError(1) << std::endl;
     }
 
     // fill Norm Unc ( only for Bkg)                             Python Style xd
@@ -207,7 +209,6 @@ void Plotter::PrintXSecData()
       totalTTbar += h->Integral();
     }
   }
-  std::cout << totalBkgStatUnc << std::endl;
 
   TH1F* h = dataSelector->GetHisto("TempXSec");
   totalData += h->Integral();
@@ -257,7 +258,7 @@ void Plotter::PrintXSecData()
   f << "# [Teff0    Teff1]" << std::endl;
   f << "# [Acep0    Acep1]" << std::endl;
   f << "# [Ndata    Nbkg ]" << std::endl;
-  f << "# [bkgNormUnc    bkgSystUnc]\n" << std::endl;
+  f << "# [bkgNormUnc    bkgStatUnc]\n" << std::endl;
   f << "# [AcepCentral   0]\n" << std::endl;
 
   f << integralsBTag[0] << ' ' << integralsBTag[1] << std::endl;
@@ -329,6 +330,8 @@ std::vector<double> Plotter::GetAcceptance()
     {
       h1 = listOfSelectors[i]->GetHisto("Acep_gen");
       h2 = listOfSelectors[i]->GetHisto("Acep_obs");
+      float err1 = h1->GetBinError(1);
+      std::cout << h1->Integral() <<" hi "<< err1 << std::endl;
       ttbarReco = listOfSelectors[i]->ttbarReco;
       ttbarGen = listOfSelectors[i]->ttbarGen;
     }
@@ -465,8 +468,8 @@ void Plotter::plotWithRatio(TString process, TString nameH1, TString nameH2, \
   // Leyenda
   pad1->cd();  
   TLegend leg = TLegend(fLegX1, fLegY1, fLegX2, fLegY2); // x0, y0, x1, y1
-  leg.AddEntry(h1, nameH1 + Form(": %1.0f", h1->Integral()), "l");
-  leg.AddEntry(h2, nameH2 + Form(": %1.0f", h2->Integral()), "l");
+  leg.AddEntry(h1, nameH1 + Form(": %1.0f", h1->Integral()), "f");
+  leg.AddEntry(h2, nameH2 + Form(": %1.0f", h2->Integral()), "f");
   leg.SetTextSize(0.043);
   leg.Draw();
 
@@ -535,7 +538,8 @@ void Plotter::PrintGaussianFit(TH1F * histo)
   
   //TFitResultPtr fitData = histo->Fit(fit, "N");
   
-  TFitResultPtr fitData = histo->Fit(fit, "Q, N");
+  //TFitResultPtr fitData = histo->Fit(fit, "Q, N");
+  TFitResultPtr fitData = histo->Fit(fit, "N");
   Double_t p1 = fit->GetParameter(1);
   Double_t e1 = fit->GetParError(1);
   std::cout << p1 << " pm " << e1 << std::endl;
@@ -832,14 +836,14 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     }
     texLumi->Draw("same");
 
-    //TLatex* texCuts = new TLatex(0, 0, 
-    //                      Form("1 isolated Muon with pt > 26"));
-    //texCuts->SetTextAlign(12);
-    //texCuts->SetNDC(1);
-    //texCuts->SetX(0.13); // 15
-    //texCuts->SetY(0.93); // 89
-    //texCuts->SetTextSize(0.04);
-    //texCuts->SetTextSizePixels(10); // 22
+    TLatex* texCuts = new TLatex(0, 0, 
+                          Form("N_{good jets} >= 4"));
+    texCuts->SetTextAlign(12);
+    texCuts->SetNDC(1);
+    texCuts->SetX(0.13); // 15
+    texCuts->SetY(0.93); // 89
+    texCuts->SetTextSize(0.04);
+    texCuts->SetTextSizePixels(10); // 22
     //texCuts->Draw("same");
 
     hTotal->SetFillStyle(3444);
@@ -855,9 +859,10 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     //hScaled->Add(hSignal, 6);
     hScaled->Scale(scale);
     hScaled->SetFillStyle(3244);
-    hScaled->SetLineColor(kBlack);
-    hScaled->SetFillColor(kBlack);
-    TString label = TString("SR * ") + (TString)std::to_string(scale);
+    hScaled->SetLineColor(kRed-7);
+    hScaled->SetLineWidth(2);
+    hScaled->SetFillColor(kGray +2);
+    TString label = TString("TTbar * ") + (TString)std::to_string(scale);
     leg->AddEntry(hScaled, label , "f"); 
     hScaled->Draw("same, hist");
   }
@@ -872,17 +877,16 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   
   if (maxY == -1){hs->SetMaximum(max*1.1);}
   else{hs->SetMaximum(maxY);}
-  //hs->SetMinimum(0.0001);
-  hs->SetMinimum(1);
-  hs->GetYaxis()->SetTitleOffset(1.5);
+  hs->SetMinimum(0.0001);
+  //hs->SetMinimum(0);
   hs->GetYaxis()->SetTitleSize(25);
   hs->GetYaxis()->SetTitleFont(43);
-  hs->GetYaxis()->SetTitleOffset(1.3);
+  hs->GetYaxis()->SetTitleOffset(2.1);
   if (drawRatios) {hs->GetXaxis()->SetLabelSize(0);}
   else
   {
     hs->GetYaxis()->SetTitleSize(30);
-    hs->GetYaxis()->SetTitleOffset(2);
+    hs->GetYaxis()->SetTitleOffset(2.1);
     hs->GetXaxis()->SetTitleOffset(1.5);
     hs->GetXaxis()->SetTitleSize(30);
     hs->GetXaxis()->SetTitle(xtitle);
@@ -926,9 +930,12 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     pad2->cd();       // pad2 becomes the current pad
     
     TH1F *h3 = (TH1F*)hdata->Clone("h3");
+    //TH1F *h3 = hSignal;
     h3->SetLineColor(kBlack);
     h3->SetMinimum(0.51);
+    //h3->SetMinimum(0.51);
     h3->SetMaximum(1.49);
+    //h3->SetMaximum(2.19);
 
     
     TH1F * hratio = (TH1F*)hdata->Clone("hratio");
@@ -942,6 +949,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     }
 
     h3->GetYaxis()->SetTitle("Data/MC");
+    //h3->GetYaxis()->SetTitle("Signal / Bkg");
     h3->GetYaxis()->SetTitleSize(25);
     h3->GetYaxis()->SetTitleFont(43);
     h3->GetYaxis()->SetTitleOffset(1.3);
@@ -950,7 +958,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
     if (xtitle != "") {h3->GetXaxis()->SetTitle(xtitle);}
     h3->GetXaxis()->SetTitleSize(25);
     h3->GetXaxis()->SetTitleFont(43);
-    h3->GetXaxis()->SetTitleOffset(3);
+    h3->GetXaxis()->SetTitleOffset(3.7);
     h3->GetXaxis()->SetLabelFont(43); 
     h3->GetXaxis()->SetLabelSize(20);
 
@@ -958,6 +966,7 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
 
     h3->SetStats(0);      // No statistics on lower plot
     h3->Divide(aux);       // ~ h1/h2
+    //h3->Divide(hBkg);       // ~ h1/h2
     h3->SetMarkerStyle(21);
     h3->Draw("ep");       // Draw the ratio plot
 
