@@ -54,10 +54,13 @@ class Plotter
                     bool doLogY = 0, Float_t maxY = -1);
         void plotWithRatio(TString process, TString nameH1, TString nameH2, \
         TString rLabel, float rMin, float rMax, bool doLogY = 0, float max = 999);
+        
         void DrawOverflowBin(TH1F* h);
+        
         std::vector<double> GetTriggerEff();
         std::vector<double> GetBTagEff();
         std::vector<double> GetAcceptance();
+
         void PrintXSecData();
         void PrintGaussianFit(TH1F *histo);
         void AddNormUnc(TH1F * hTarget, TString name, TString process, 

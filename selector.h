@@ -2,7 +2,6 @@
 
 #include <string>
 
-
 #include "TH1.h"
 #include "TLorentzVector.h"
 #include "TTree.h"
@@ -110,13 +109,11 @@ class Selector
     void PrintBTagEffData();
     void ClearVariables();
 
-
   private:
 
     TString filePath;               // path of the root file
 
     bool fileExist(const std::string name);
-
 
     void Loop();
 };
