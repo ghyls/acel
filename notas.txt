@@ -97,13 +97,6 @@ las cosas, y ya te preocuparás luego de la masa del top y del resto de movidas.
 Suerte chaval
 
 
-
-
-
-pintar los cortes sobre el plot, la lumi, la secc eff, quitar el titulo, reunir
-los MC que son pequeños y quitar los que son 0
-
-
 Tomar tres valores en MissTag:
 
 0.1 -> Tight
