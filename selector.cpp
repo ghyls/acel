@@ -17,12 +17,12 @@
 // TODO: aplicar cortes   DONE
 
 
-#define JET_MIN_PT 30 // 30
+#define JET_MIN_PT 50 // 30
 #define JET_MAX_PT 999
 #define DR_MAX_JETS 0.3
 #define MUON_MIN_PT 26 // 26
-#define BTAG_LIM 1
-#define MIN_TRUE_JETS 4
+#define BTAG_LIM 4.3
+#define MIN_TRUE_JETS 3
 #define MIN_B_JETS 1        // bJets >= MIN_B_JETS
 #define JET_MAX_ETA 2.4 //2.4
 #define MUON_MAX_ETA 2.4 //2.4
@@ -90,13 +90,13 @@ void Selector::CreateHistograms(TString prefix)
 {
 
   //there variables may be called from other cpps.
-  TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "", 8, 20, 130);
+  TH1F* h1 = new TH1F(prefix + TString("_MuonPt"), "", 8, 20, 150);
   TH1F* h2 = new TH1F(prefix + TString("_Jet_btag"), "", 80, -2, 6);
   TH1F* h3 = new TH1F(prefix + TString("_MuonPt_raw"), "", 40, 10, 60);
   TH1F* h4 = new TH1F(prefix + TString("_Acep_gen"), "", 20, -1, 2);
   TH1F* h5 = new TH1F(prefix + TString("_Acep_obs"), "", 20, -1, 2);
   TH1F* h6 = new TH1F(prefix + TString("_MuMuMass"), "", 40, 60, 120);
-  TH1F* h7 = new TH1F(prefix + TString("_Muon_Iso"), "", 60, 0, 0.15);
+  TH1F* h7 = new TH1F(prefix + TString("_Muon_Iso"), "", 60, 0, 40);
   TH1F* h8 = new TH1F(prefix + TString("_MuonPt_TriggOnly"), "", 40, 10, 60);
 
   TH1F* h9 = new TH1F(prefix + TString("_BJet_Pt"), "", 20, 20, 160);
@@ -110,12 +110,15 @@ void Selector::CreateHistograms(TString prefix)
   TH1F* h16 = new TH1F(prefix + TString("_MCMassHadrT"), "", 100, 171.8, 173);
   TH1F* h17 = new TH1F(prefix + TString("_MCMassLeptT"), "", 100, 171.8, 173);
   TH1F* h18 = new TH1F(prefix + TString("_JetMatchSuccess"), "", 12, -1, 3); //deleteme
-  TH1F* h19 = new TH1F(prefix + TString("_MassHadrW"), "", 12, 30, 120);
+  TH1F* h19 = new TH1F(prefix + TString("_MassHadrW"), "", 11, 30, 130);
   TH1F* h20 = new TH1F(prefix + TString("_MassLeptW"), "", 12, 20, 160);
   TH1F* h21 = new TH1F(prefix + TString("_MassHadrT"), "", 10, 60, 300);
   TH1F* h22 = new TH1F(prefix + TString("_MassLeptT"), "", 10, 60, 300);
   TH1F* h23 = new TH1F(prefix + TString("_MassBestT"), "", 10, 60, 300);
   TH1F* h24 = new TH1F(prefix + TString("_evtWeight"), "", 30, 0, 0.35);
+  TH1F* h25 = new TH1F(prefix + TString("_Jet_Pt"), "", 50, 0, 300);
+  TH1F* h26 = new TH1F(prefix + TString("_TransMassLeptW"), "", 12, 80, 200);
+  TH1F* h27 = new TH1F(prefix + TString("_MET"), "", 40, 0, 120);
 
 
   histograms.push_back(h1); 
@@ -142,6 +145,9 @@ void Selector::CreateHistograms(TString prefix)
   histograms.push_back(h22); 
   histograms.push_back(h23); 
   histograms.push_back(h24); 
+  histograms.push_back(h25); 
+  histograms.push_back(h26); 
+  histograms.push_back(h27); 
 }
 
 float Selector::Module(float x, float y, float z)
@@ -193,7 +199,7 @@ void Selector::ComputeMissTagEff(float discr)
   // todos los jets no b incluye los que ni siquiera son jets, pero se han
   // identificado como btags?
 
-  // calll me only if ttbar!
+  // call me only if ttbar!
 
   // no bTags generados --------------------------------------------------------
   TLorentzVector qW1;
@@ -346,6 +352,13 @@ void Selector::DoJetGoodPt()
   for (int j = 0; j < NJet; j++)
   {
     jet.SetPxPyPzE(Jet_Px[j], Jet_Py[j], Jet_Pz[j], Jet_E[j]);
+    if (process != "data" && jet.Pt() < 30){std::cout << "hi" << std::endl;}
+    
+    if (process != "data" && process != "qcd")
+    {
+      GetHisto("Jet_Pt")->Fill(jet.Pt(), EventWeight);
+    }
+    
     //std::cout << jet.Pt() << std::endl;
     if (jet.Pt() >= JET_MIN_PT && abs(jet.Eta()) <= JET_MAX_ETA)
     {
@@ -504,7 +517,7 @@ void Selector::Loop()
 
 
 
-  ttbarGen = 36941;
+  ttbarGen = 36941; // m a x i m u m   h a r d c o d i n g ,   again.
   //ttbarGen = 0;
   ttbarReco = 0;
 
@@ -512,12 +525,19 @@ void Selector::Loop()
     {
       //PrintBTagEffData();
     }
-    
+  
+  float meanEvWeight = 0;
+
   for (int i = 0; i < numEvents; i++)
   {
     tree->GetEntry(i);
 
     if (process == "data") {EventWeight = 1;}
+
+
+    meanEvWeight += EventWeight;
+    //if (process == "wjets") std::cout << process << "  " << EventWeight << std::endl;
+
 
     // compute TMass from MC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (process == "ttbar" && MCneutrino_px != 0)
@@ -578,6 +598,8 @@ void Selector::Loop()
     DoBTagging(BTAG_LIM);
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+
+
     // Aceptancia, GEN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if (process == "ttbar" && TMath::Abs(MCleptonPDGid) == 13)
     {
@@ -635,7 +657,7 @@ void Selector::Loop()
       //GetHisto("Muon_Iso")->Fill(Muon_Iso[j]/muon.Pt(), EventWeight);
       //GetHisto("Muon_Iso")->Fill(muon.Pt(), EventWeight);
       
-      if (Muon_Iso[j]/muon.Pt() < 0.2)
+      if (Muon_Iso[j]/muon.Pt() < 0.15)
       {
         NIsoMuon ++;
         if (NIsoMuon == 1) {leadMuon = muon; leadMuIndex = j;} // bigger pt
@@ -705,29 +727,34 @@ void Selector::Loop()
     
 
 
-    // =========================================================================
-    bool go = false;
-    if (NIsoMuon == 1 || (NIsoMuon > 1 && abs(muon2.Pt()) < 15) ) {
-      go = true;}
-    else {go = false;}   //  TTBAR ANALYSIS 
 
-    if (!go) {
-      ClearVariables();
-      continue;
-      }
-    // =========================================================================
+
+
+
+
+
+
 
 
     if (triggerIsoMu24) 
     {
+
       if (leadMuon.Pt() >= MUON_MIN_PT && abs(leadMuon.Eta()) <= MUON_MAX_ETA)
       {
         // compute TMass from Data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        if (NTrueJets >= 2 && bJets >= 1) 
+      // MET
+      float met_Pt = TMath::Power(MET_px*MET_px + MET_py*MET_py, 0.5);
+      if (process != "qcd") GetHisto("MET")->Fill(met_Pt, EventWeight);
+        if (NTrueJets >= 1 && bJets >= 1) 
         {
           float Mjj = 0; float auxMjj = 0;
           TLorentzVector hadrJet1, hadrJet2;
           // Hadronic branch ···················································
+          float M3j = 999;
+          float auxM3j;
+          float TopMassTeo = 173;
+
+          if (NTrueJets >= 2){
           for (int j = 0; j < NJet; j++) 
           {
             for (int k = 0; k < NJet; k++)
@@ -738,7 +765,7 @@ void Selector::Loop()
                 jet2.SetPxPyPzE(Jet_Px[k], Jet_Py[k], Jet_Pz[k], Jet_E[k]);
 
                 auxMjj = (jet + jet2).M();
-                if ((abs(auxMjj -81) < abs(Mjj - 81)) && abs(auxMjj - 81) < 30)
+                if ((abs(auxMjj -81) < abs(Mjj - 81)) && abs(auxMjj - 81) < 40)
                 {
                   Mjj = auxMjj;
                   hadrJet1 = jet;
@@ -750,9 +777,6 @@ void Selector::Loop()
           GetHisto("MassHadrW")->Fill(Mjj, EventWeight);
 
           // matching with b-Jets
-          float M3j = 999;
-          float auxM3j;
-          float TopMassTeo = 173;
 
           for (int j = 0; j < NJet; j++)
           {
@@ -777,7 +801,7 @@ void Selector::Loop()
             //std::cout << M3j << std::endl;
             GetHisto("MassHadrT")->Fill(M3j, EventWeight);
           }
-
+          }
 
           // ···································································
           // Leptonic branch ···················································
@@ -802,6 +826,7 @@ void Selector::Loop()
           MLeptW[0] = (nuAux[0] + leadMuon).M();
           MLeptW[1] = (nuAux[1] + leadMuon).M();
           if (MET_pz[0] != 999){
+            GetHisto("TransMassLeptW")->Fill((nuAux[0]+leadMuon).Mt(), EventWeight);
             GetHisto("MassLeptW")->Fill(MLeptW[0], EventWeight);
           }
           if (MET_pz[1] != 999){
@@ -849,7 +874,7 @@ void Selector::Loop()
             GetHisto("MassLeptT")->Fill(bestLeptMTop, EventWeight);
           }
 
-          //  Another Histo w/ Best MAssT per event.
+          //  Another Histo w/ Best MassT per event.
           if (abs(bestLeptMTop - TopMassTeo) < abs(M3j - TopMassTeo))
           {
             GetHisto("MassBestT")->Fill(bestLeptMTop, EventWeight);
@@ -863,12 +888,38 @@ void Selector::Loop()
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
+
+
+    // =========================================================================
+    bool go = false;
+    if (NIsoMuon == 1 || (NIsoMuon > 1 && abs(muon2.Pt()) < 10) ) {
+      go = true;}
+    else {go = false;}   //  TTBAR ANALYSIS 
+
+    if (!go) {
+      ClearVariables();
+      continue;
+      }
+    // =========================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
         //bJets = 0;    
         std::vector <int> indexBJets = {}; 
         //int jetIsB[20]; std::fill_n(jetIsB, 20, false);
         if (NTrueJets >= MIN_TRUE_JETS)  
         {
-          if (bJets >= MIN_B_JETS)
+          if (bJets >= MIN_B_JETS && met_Pt > 0)
           { 
             GetHisto("Acep_obs")->Fill(0.0, EventWeight);
             GetHisto("MuonPt")->Fill(leadMuon.Pt(), EventWeight); 
@@ -896,6 +947,9 @@ void Selector::Loop()
     // <<<<<<<<<<<<<<<<<<<<<<<<>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ClearVariables();
   }
+
+  meanEvWeight = meanEvWeight / numEvents;
+  std::cout << process << " " << meanEvWeight << std::endl;
 
   float BR = 0.134 * 0.665 * 2;
   //std::cout << BR << std::endl;
