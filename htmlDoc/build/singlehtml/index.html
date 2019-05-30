@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SAF (Simple Analysis Framework) 1.4 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html#document-index" class="icon icon-home"> SAF (Simple Analysis Framework)
+          
+
+          
+            
+            <img src="_static/top3.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4
+              </div>
+            
+          
+
+          
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">1. Introducción</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-tutorial/index">2. Documentación</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#document-tutorial/theTutorial">2.1. Archivos .cpp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="index.html#terminator-cpp">2.1.1. Terminator.cpp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#selector-cpp">2.1.2. selector.cpp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#plotter-cpp">2.1.3. plotter.cpp</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#document-tutorial/notes">2.2. Archivos .py</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="index.html#plotter-py">2.2.1. plotter.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#solveeq-py">2.2.2. solveEq.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#computexsec-py">2.2.3. computeXsec.py</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html#document-index">SAF (Simple Analysis Framework)</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html#document-index">Docs</a> &raquo;</li>
+        
+      <li>SAF (Simple Analysis Framework) 1.4 documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="el-framework-detras-del-analisis">
+<h1>El framework detrás del análisis<a class="headerlink" href="#el-framework-detras-del-analisis" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<span id="document-introduction"></span><div class="section" id="introduccion">
+<span id="introduction"></span><h2>1. Introducción<a class="headerlink" href="#introduccion" title="Permalink to this headline">¶</a></h2>
+<p>A continuación voy a señalar algunos de los puntos originales del framework que
+he utilizado para llevar a cabo el análisis. Procuraré ser breve en la medida de
+lo posible.</p>
+<p>Antes de comenzar, todo el código se encuentra disponible en un <a class="reference external" href="https://github.com/mariohyls/acel.git">repositorio</a> en
+Github creado con este propósito. Puede clonarse utilizando el comando</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mariohyls</span><span class="o">/</span><span class="n">acel</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Actualmente, el repositorio es público, aunque hasta hace pocos días ha sido
+privado desde que lo creé en febrero.</p>
+<p>En lo sucesivo, describiré el análisis desde el punto de vista computacional,
+dedicando aproximadamente una sección por archivo de código fuente.</p>
+</div>
+<span id="document-tutorial/index"></span><div class="section" id="documentacion">
+<h2>2. Documentación<a class="headerlink" href="#documentacion" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-tutorial/theTutorial"></span><div class="section" id="archivos-cpp">
+<h3>2.1. Archivos .cpp<a class="headerlink" href="#archivos-cpp" title="Permalink to this headline">¶</a></h3>
+<p>En la carpeta <code class="docutils literal notranslate"><span class="pre">./practica/files</span></code> se encuentran las tuplas que serán leídas en
+el análisis. No hay archivos de código fuente en esta carpeta.</p>
+<p>En la carpeta <code class="docutils literal notranslate"><span class="pre">./PyTools</span></code> se encuentran los scripts en Python con los que
+calculamos la sección eficaz (y la propagación de todas sus incertidumbres), así
+como un plotter que permite a <cite>eff.py</cite> dibujar todas las curvas que mostramos
+tanto al hablar de la eficiencia del trigger como cuando comentamos de la de b
+Tag en el pdf.</p>
+<p>Fuera de estas cos carpetas se encuentran todos los archivos .cpp y .h
+involucrados en el análisis. Comencemos hablando de ellos.</p>
+<div class="section" id="terminator-cpp">
+<h4>2.1.1. Terminator.cpp<a class="headerlink" href="#terminator-cpp" title="Permalink to this headline">¶</a></h4>
+<p>Este archivo es la interfaz del usuario, desde la que se editarán las opciones
+básicas para los histogramas.</p>
+<p>En apenas tres líneas podemos configurar el título del histogrma y el de los
+ejes, la posición de la leyenda, los límites en <strong>x</strong> y en <strong>y</strong> o la presencia
+o no del plot de ratios, entre otras cosas.</p>
+<p>Desde aquí se crean todos los histogramas que el usuario haya definido. En mi
+caso, <cite>Terminator.cpp</cite> produce 22 histogramas cada vez que es llamado. Muchos de
+ellos están en el pdf, y otros son producidos simplemente para comprobar que
+todo va bien en algún punto del análisis.</p>
+<p>Tarda muy pocos segundos en producirlos todos, aunque por una mezcla entre
+razones de eficiencia y (sobre todo) simple curiosidad, he querido paralelizar
+el análisis utilizando la librería por excelencia MPI.</p>
+<p>Las primeras líneas de la función <cite>terminator()</cite> son el ‘’helloWorld’’ de MPI, y
+están ahí para asegurar que las variables de entorno se han iniciado bien.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">MPI_Comm</span> <span class="n">comm</span><span class="p">;</span>
+<span class="n">MPI_Status</span> <span class="n">status</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">size</span><span class="p">,</span> <span class="n">rank</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI_COMM_WORLD</span><span class="p">;</span>
+
+<span class="n">MPI_Init</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+
+<span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">);</span>
+<span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rank</span><span class="p">);</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello from rank &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">rank</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;!&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Running on &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">size</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; process(es)!</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;}</span>
+</pre></div>
+</div>
+<p>Si corremos el código en un ordenador con cuatro cores, el output del código
+superior será</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Hello</span> <span class="n">from</span> <span class="n">rank</span> <span class="mi">1</span><span class="o">!</span>
+<span class="n">Hello</span> <span class="n">from</span> <span class="n">rank</span> <span class="mi">3</span><span class="o">!</span>
+<span class="n">Hello</span> <span class="n">from</span> <span class="n">rank</span> <span class="mi">0</span><span class="o">!</span>
+<span class="n">Hello</span> <span class="n">from</span> <span class="n">rank</span> <span class="mi">2</span><span class="o">!</span>
+
+<span class="n">Running</span> <span class="n">on</span> <span class="mi">4</span> <span class="n">process</span><span class="p">(</span><span class="n">es</span><span class="p">)</span><span class="o">!</span>
+</pre></div>
+</div>
+<p>Los cuatro cores saludarán desde la terminal según vayan llegando a la línea
+correspondiente. Sin embargo, solo el primero de ellos entrará dentro del <cite>if</cite> e
+imprimirá el número total de cores.</p>
+<p>Con condicionales parecidos dividiremos el conjunto de histogramas en función
+del número de cores de los que dispongamos, de tal forma que cada core construya
+únicamente un conjunto de ellos.</p>
+<p>MPI utiliza un compilador espeical para proyectos en C++, <cite>mpic++</cite>. Si no se
+tienen las librerías de MPI compiladas en algún sitio, el código no compilará
+(tampoco con gcc) y por tanto no podrá correrse el análisis.</p>
+<p>Si se tuvieran, el comando para compilar el proyecto es</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpic++ -o main terminator.cpp selector.cpp plotter.cpp <span class="sb">`</span>root-config --cflags --glibs<span class="sb">`</span>
+</pre></div>
+</div>
+<p>y luego podría correrse con <code class="docutils literal notranslate"><span class="pre">mpirun</span> <span class="pre">main</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Actualmente, todas las funciones de MPI están comentadas, de forma que
+pueda compilarse aun sin esta librería en el ordenador. La diferencia en el
+tiempo de ejecución, de todas formas, apenas es apreciable.</p>
+</div>
+<p>El comando en una línea para compilar el proyecto y correr el análisis sin MPI
+es</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>g++ -o main terminator.cpp selector.cpp plotter.cpp <span class="sb">`</span>root-config --cflags --glibs<span class="sb">`</span> <span class="o">&amp;&amp;</span> ./main
+</pre></div>
+</div>
+<p>que no debería dar problemas en ningún caso.</p>
+<p>Las flags <code class="docutils literal notranslate"><span class="pre">root-config</span> <span class="pre">--cflags</span> <span class="pre">--glibs</span></code> son cosa de ROOT, y hacen que podamos
+compilar un simpe ejecutable sin tener que crear librerías compartidas por cada
+archivo fuente ni hacer ninguna otra cosa rara.</p>
+</div>
+<div class="section" id="selector-cpp">
+<h4>2.1.2. selector.cpp<a class="headerlink" href="#selector-cpp" title="Permalink to this headline">¶</a></h4>
+<p>El propósito de este archivo es llevar a cabo todo el análisis, sin crear
+ningún histograma. Es un fichero relativamente extenso del que comentaré apenas
+unos pocos aspectos.</p>
+<p>Nada más abrirlo, en la cabecera del script, se encuentran  <em>todos</em> los cortes
+relevantes que definen la región de señal:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#define JET_MIN_PT 50</span>
+<span class="cp">#define JET_MAX_PT 999</span>
+<span class="cp">#define DR_MAX_JETS 0.3</span>
+<span class="cp">#define MUON_MIN_PT 26</span>
+<span class="cp">#define BTAG_LIM 1</span>
+<span class="cp">#define MIN_TRUE_JETS 3</span>
+<span class="cp">#define MIN_B_JETS 1</span>
+<span class="cp">#define JET_MAX_ETA 2.4</span>
+<span class="cp">#define MUON_MAX_ETA 2.4</span>
+</pre></div>
+</div>
+<p>He escrito estos cortes en forma de directivas para el preprocesador con el
+único fin de hacerlos visibles y <em>fácilmente editables</em>. Si se quiere modificar
+el análisis, bastará con cambiar algunos de estos valores y volver a compilar el
+código.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">El archivo de texto que leeremos en Python para calcular la sección eficaz
+con su incertidumbre es la salida de el binario que se genera con todo este
+código. Antes calcular la sección eficaz, por tanto, tendrá que ejecutarse
+el binario que produce su entrada.</p>
+</div>
+<p>He creado también, de forma manual, un destructor que limpia el rastro de los
+histogramas cada vez que se completa uno. De cara al análisis es algo totalmente
+irrelevante, pero podría suponer un importante ahorro de memoria si aumentásemos
+la longitud de las tuplas de entrada en unos pocos órdenes de magnitud.</p>
+<p>El resto de funciones no tienen nada en particular, salvo peculiaridades de C++
+y ROOT que no se encuentran en Python, que no voy a pasar a describir.</p>
+</div>
+<div class="section" id="plotter-cpp">
+<h4>2.1.3. plotter.cpp<a class="headerlink" href="#plotter-cpp" title="Permalink to this headline">¶</a></h4>
+<p>Este es el otro gran script del análisis. Igualmente, dispone de un constructor
+y un destructor que preparan algunas variables y destruyen otras,
+respectivamente.</p>
+<p>Aquí concretamente se encuentra el código que, leyendo los resultados del
+análisis, imprime un fichero de texto que posteriormente leerá Python. La
+funcióon concreta se llama <code class="docutils literal notranslate"><span class="pre">PrintXSecData()</span></code>.</p>
+<p>Las dos funciones más importantes aquí son:</p>
+<div class="section" id="plotwithratio">
+<h5>2.1.3.1. plotWithRatio()<a class="headerlink" href="#plotwithratio" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">Plotter</span><span class="o">::</span><span class="n">plotWithRatio</span><span class="p">(</span><span class="n">TString</span> <span class="n">process</span><span class="p">,</span> <span class="n">TString</span> <span class="n">nameH1</span><span class="p">,</span> <span class="n">TString</span> <span class="n">nameH2</span><span class="p">,</span> \
+            <span class="n">TString</span> <span class="n">rLabel</span><span class="p">,</span> <span class="kt">float</span> <span class="n">rMin</span><span class="p">,</span> <span class="kt">float</span> <span class="n">rMax</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">doLogY</span><span class="p">,</span> <span class="kt">float</span> <span class="n">max</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Esta función dibuja dos histogramas superpuestos, así como el cociente entre
+ambos en el pad inferior. Ninguna gráfica del documento en pdf ha sido generada
+con esta función, pero me ha resultado de gran utilidad para comprobar
+resultados intermedios.</p>
+<div class="figure align-center" id="id1">
+<img alt="Histograma para estimar la eficiencia del trigger (*borrador*)" src="_images/triggEff.png" />
+<p class="caption"><span class="caption-number">Fig. 2.1 </span><span class="caption-text">Histograma para estimar la eficiencia del trigger (<em>borrador</em>)</span></p>
+</div>
+<p>Por supuesto, también pueden obtenerse histogrmas bonitos con esta función :D</p>
+<p>He definido también otra para representar el bin de <em>overflow</em> de un
+histograma concreto. Su sintaxis es muy sencilla:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">Plotter</span><span class="o">::</span><span class="n">DrawOverflowBin</span><span class="p">(</span><span class="n">TH1F</span><span class="o">*</span> <span class="n">h</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Si se llama (como se ha hecho en los histogramas del pdf), pintará el overflow
+en el último bin. Si no, no.</p>
+</div>
+<div class="section" id="stack">
+<h5>2.1.3.2. Stack<a class="headerlink" href="#stack" title="Permalink to this headline">¶</a></h5>
+<p>Esta es la función que produce <strong>todos</strong> los hitogramas (menos los generados en
+Python) que se encuentran en el pdf.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">Plotter</span><span class="o">::</span><span class="n">Stack</span><span class="p">(</span><span class="n">TString</span> <span class="n">name</span><span class="p">,</span> <span class="n">TString</span> <span class="n">process</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">drawRatios</span><span class="p">,</span>
+  <span class="n">TString</span> <span class="n">options</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TString</span><span class="o">&gt;</span> <span class="n">histoNames</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">doLogY</span><span class="p">,</span> <span class="n">Float_t</span> <span class="n">maxY</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Es una función <em>muy</em> personalizable. Prácticamente todas las distintas opciones
+(plots con ratio señal / fondo, datos /MC, si ratio, en escala lineal y
+logarítmica, con errores estadísticos o sistemáticos…) han sido utilizadas en
+el pdf, con lo que no entraré en ellas aquí.</p>
+</div>
+<div class="section" id="mas-cosas">
+<h5>2.1.3.3. Más cosas<a class="headerlink" href="#mas-cosas" title="Permalink to this headline">¶</a></h5>
+<p>He implementado también una función para representar en el histograma los
+errores sistemáticos de normalización en lugar de los estadísticos, y así ver
+claramente de qué Monte Carlo provienen las mayores contribuciones.</p>
+<p>Esta función, de sintaxis también muy sencilla, se ha utilizado para generar los
+plots del momento del muón en la SR. Los histogramas están incluidos en el pdf.</p>
+<p>Otro punto original es el hecho de limpiar la leyenda automáticamente,
+representando en ella solo los MonteCarlos con más de cero eventos en el
+histograma. Además, si ZZ, WZ o WW no suman más de 10 eventos, serán agrupados
+en una categoría <em>VV</em>, que se los englobará a ambos en el histograma.</p>
+<p>Por último, si un MC tiene menos de un evento, se representará en la leyenda
+como <em>MC &lt; 1</em>.</p>
+<div class="figure align-center" id="id2">
+<img alt="Aquí se ha contado menos de un evento para el total de los procesos VV." src="_images/dataBestTMass.png" />
+<p class="caption"><span class="caption-number">Fig. 2.2 </span><span class="caption-text">Aquí se ha contado menos de un evento para el total de los procesos VV.</span></p>
+</div>
+<p>Por último, quiero señalar que, a pesar de no devolver todas las incertidumbres
+de una sola ejecución (hay que recurrir a los scripts en Python para ello),
+ejecutar el binario desde la terminal devuelve ya los valores centrales de las
+cantidades más relevantes. Un ejemplo es el siguiente:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">================================</span>
+<span class="go">B tagging eff: 0.236916</span>
+<span class="go">Trigger eff: 0.815942</span>
+<span class="go">Acep (from histos): 0.224952</span>
+<span class="go">Acep (from th):     0.307341</span>
+<span class="go">Cross Section: 164.762</span>
+<span class="go">================================</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<span id="document-tutorial/notes"></span><div class="section" id="archivos-py">
+<h3>2.2. Archivos .py<a class="headerlink" href="#archivos-py" title="Permalink to this headline">¶</a></h3>
+<p>Estos archivos (que todos ellos se encuentran en la carpeta PyTools), están
+orientados al cálculo simbólico o a imprimir plots bonitos.</p>
+<div class="section" id="plotter-py">
+<h4>2.2.1. plotter.py<a class="headerlink" href="#plotter-py" title="Permalink to this headline">¶</a></h4>
+<p>Es una clase que se importa desde fuera y se utiliza para generar los plots.</p>
+</div>
+<div class="section" id="solveeq-py">
+<h4>2.2.2. solveEq.py<a class="headerlink" href="#solveeq-py" title="Permalink to this headline">¶</a></h4>
+<p>Este script se utiliza para resolver simbólicamente la ecuación para el pz del
+neutrino. Todo lo que hay que hacer es definir todas las variables de forma
+simbólica y pasarle a <em>sympy.solvers.solve</em> la ecuación a resolver igualada a 0.</p>
+<p>El siguiente es <strong>todo</strong> el código necesario para imprimir en la terminal las
+dos soluciones a esta ecuación.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sympy.solvers</span> <span class="kn">import</span> <span class="n">solve</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span>
+
+
+<span class="n">massW</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;massW&#39;</span><span class="p">)</span>
+<span class="n">lpM</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;lpM&#39;</span><span class="p">)</span>
+<span class="n">nuPz</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;nuPz&#39;</span><span class="p">)</span>
+<span class="n">nuPx</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;nuPx&#39;</span><span class="p">)</span>
+<span class="n">nuPy</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;nuPy&#39;</span><span class="p">)</span>
+<span class="n">lpPx</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;lpPx&#39;</span><span class="p">)</span>
+<span class="n">lpPy</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;lpPy&#39;</span><span class="p">)</span>
+<span class="n">lpPz</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;lpPz&#39;</span><span class="p">)</span>
+
+
+<span class="n">sol</span> <span class="o">=</span> <span class="n">solve</span><span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="p">((</span><span class="n">lpPx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">lpPy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">lpPz</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span>
+        <span class="p">(</span><span class="n">nuPx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">nuPy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">nuPz</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">-</span>
+        <span class="n">lpPx</span><span class="o">*</span><span class="n">nuPx</span> <span class="o">-</span> <span class="n">lpPy</span><span class="o">*</span><span class="n">nuPy</span> <span class="o">-</span><span class="n">lpPz</span><span class="o">*</span><span class="n">nuPz</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">-</span> <span class="n">massW</span><span class="p">,</span> <span class="n">nuPz</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Toda la declaración de variables con <code class="docutils literal notranslate"><span class="pre">Symbol()</span></code> podría haberse compactado en una
+sola línea con <code class="docutils literal notranslate"><span class="pre">sp.symbols()</span></code>, aunque como está se lee mejor.</p>
+<p>Los pocos minutos que lleva escribir este script lo hacen sin ninguna duda la
+opción más favorable para resolver este cálculo. <em>Sympy</em> tiene herramientas muy
+útiles y potentes para resolver simbólicamente derivadas, integrales o sistemas
+de ecuaciones entre muchas cosas. Creo firmemente que es una herramienta que
+todo estudiante de física debería conocer a estas alturas (esta u otras
+similares).</p>
+<p>Resolver una ecuación de este tipo sobre el papel en el contexto de una práctica
+en la que trabajamos constantemente con ordenadores no me ha parecido una
+opción.</p>
+</div>
+<div class="section" id="computexsec-py">
+<h4>2.2.3. computeXsec.py<a class="headerlink" href="#computexsec-py" title="Permalink to this headline">¶</a></h4>
+<p>Este script lee el output del binario generado al compilar el proyecto, y lo
+utiliza para calcular la sección eficaz con todas sus incertidumbres.</p>
+<p>Propaga por separado la contribución de cada una de ellas al error de la sección
+eficaz, y devuelve en pocas décimas de segundo el valor central con su
+incertidumbre.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">RESULT = 162.75 pm 45.5 (TOTAL)</span>
+<span class="go">                pm 19.2 (lumi)</span>
+<span class="go">                pm 15.6 (data stat)</span>
+<span class="go">                pm 22.2 (bkg norm)</span>
+<span class="go">                pm 9.3 (bkg stat)</span>
+<span class="go">                pm 19.2 (bTag)</span>
+<span class="go">                pm 21.9 (trigger)</span>
+<span class="go">                pm 5.1 (acep)</span>
+</pre></div>
+</div>
+<p>Como resultados intermedios, imprime también el valor central de cada error
+acompañado de su incertidumbre, antes de ser propagada a la sección eficaz.</p>
+<p>Por supuesto, derivar la sección eficaz para propagar a ella <strong>todos</strong> los
+errores también es algo que se ha implementado en <em>sympy</em>. De esta forma
+se realiza todo el cálculo de forma simbólica, y se sustituye luego sin perder
+precisión.</p>
+<p>Este script es razonablemente más complejo que el anterior, pero el resultado es
+una herramienta muy potente que permite recalcular todas las incertidumbres tras
+variar cualquier parámetro del análisis, sin esfuerzo alguno.</p>
+<p>No siento ninguna pena por los compañeros que hayan tenido que completar estos
+cálculo a mano, pero sí que me hubiera hecho ilusión que se introdujesen estas
+herramientas en clase.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, 2019, Mario González.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
