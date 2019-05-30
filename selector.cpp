@@ -21,7 +21,7 @@
 #define JET_MAX_PT 999
 #define DR_MAX_JETS 0.3
 #define MUON_MIN_PT 26 // 26
-#define BTAG_LIM 4.3
+#define BTAG_LIM 1
 #define MIN_TRUE_JETS 3
 #define MIN_B_JETS 1        // bJets >= MIN_B_JETS
 #define JET_MAX_ETA 2.4 //2.4
@@ -949,7 +949,7 @@ void Selector::Loop()
   }
 
   meanEvWeight = meanEvWeight / numEvents;
-  std::cout << process << " " << meanEvWeight << std::endl;
+  //std::cout << process << " " << meanEvWeight << std::endl;
 
   float BR = 0.134 * 0.665 * 2;
   //std::cout << BR << std::endl;
