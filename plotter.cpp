@@ -126,11 +126,6 @@ TH1F* Plotter::GetHisto(TString name) //name is the name of the histo
     throw;
 }
 
-int Plotter::GetEvents(TString name)
-{
-  // Returns the integral of a histogram
-  return GetHisto(name)->Integral();
-}
 
 void Plotter::PrintEvents(TString name)
 {
@@ -244,8 +239,8 @@ void Plotter::PrintXSecData()
   float eff = triggEff * muonEff * bTagEff;
   //acep = totalTTbar / (eff * lumi * BR * sigmaTeo);
   float acep2 = totalTTbar / (eff * lumi * BR * sigmaTeo);
-  std::cout << acep2 << std::endl;
-  std::cout << totalSignal << std::endl;
+  std::cout <<"Acep (from th):     " << acep2 << std::endl;
+  //std::cout << totalSignal << std::endl;
   float sigma = totalSignal / (lumi * acep2 * eff * BR);
   std::cout << "Cross Section: " << sigma << std::endl;        
   std::cout << "================================" << std::endl;
@@ -331,7 +326,7 @@ std::vector<double> Plotter::GetAcceptance()
       h1 = listOfSelectors[i]->GetHisto("Acep_gen");
       h2 = listOfSelectors[i]->GetHisto("Acep_obs");
       float err1 = h1->GetBinError(1);
-      std::cout << h1->Integral() <<" hi "<< err1 << std::endl;
+      //std::cout << h1->Integral() <<" hi "<< err1 << std::endl;
       ttbarReco = listOfSelectors[i]->ttbarReco;
       ttbarGen = listOfSelectors[i]->ttbarGen;
     }
@@ -339,7 +334,7 @@ std::vector<double> Plotter::GetAcceptance()
 
   //float acept = h2->Integral()/h1->Integral();
 
-  std::cout << "Aceptance: " << ttbarReco/(ttbarGen*BR) << std::endl;
+  std::cout << "Acep (from histos): " << ttbarReco/(ttbarGen*BR) << std::endl;
   
   //std::vector<double> integrals = {h1->Integral(), h2->Integral()};
   std::vector<double> integrals = {ttbarReco, ttbarGen};
@@ -877,11 +872,11 @@ void Plotter::Stack(TString name, TString process, bool drawRatios,
   
   if (maxY == -1){hs->SetMaximum(max*1.1);}
   else{hs->SetMaximum(maxY);}
-  hs->SetMinimum(0.0001);
-  //hs->SetMinimum(0);
+  if (doLogY) {hs->SetMinimum(1);}
+  else {hs->SetMinimum(0.000001);}
   hs->GetYaxis()->SetTitleSize(25);
   hs->GetYaxis()->SetTitleFont(43);
-  hs->GetYaxis()->SetTitleOffset(2.1);
+  hs->GetYaxis()->SetTitleOffset(1.5);
   if (drawRatios) {hs->GetXaxis()->SetLabelSize(0);}
   else
   {
